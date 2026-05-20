@@ -518,18 +518,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 
 <!-- ════ SCREEN 2: HUNT ════ -->
 <div class="screen hidden" id="screen-hunt">
-  <div class="hunt-header" style="gap:6px;">
-    <button onclick="backToSpotSelect()" style="background:none;border:none;padding:4px 6px 4px 0;cursor:pointer;font-size:22px;color:var(--ink-mid);line-height:1;flex-shrink:0;">←</button>
-    <!-- 닉네임/학교 (흰 배경, 최대 너비 제한) -->
-    <div style="flex:1;min-width:0;background:#fff;border:1px solid var(--border);border-radius:20px;padding:4px 10px;overflow:hidden;">
-      <div class="hunt-nick" id="hunt-nick-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">탐험가</div>
-      <div class="hunt-school" id="hunt-school-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">보물을 향해 출발! 🚶</div>
+  <div class="hunt-header" style="gap:8px;padding:8px 14px;">
+    <!-- ← 뒤로가기 -->
+    <button onclick="backToSpotSelect()" style="background:none;border:none;padding:4px 4px 4px 0;cursor:pointer;font-size:20px;color:var(--ink-mid);line-height:1;flex-shrink:0;">←</button>
+    <!-- 닉네임/학교 (흰 배경, flex:1로 남은 공간 차지) -->
+    <div style="flex:1;min-width:0;background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;overflow:hidden;">
+      <div class="hunt-nick" id="hunt-nick-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;">탐험가</div>
+      <div class="hunt-school" id="hunt-school-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px;">보물을 향해 출발! 🚶</div>
     </div>
-    <!-- 스팟 정보 (하늘색 배경) -->
-    <div id="hunt-spot-info" style="flex-shrink:0;max-width:130px;background:#EEF3FF;border:1px solid var(--blue);border-radius:20px;padding:4px 10px;text-align:right;">
-      <div id="hunt-spot-badge" style="font-size:9px;font-weight:700;color:var(--blue);white-space:nowrap;">스팟 1</div>
-      <div id="hunt-spot-name" style="font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;"></div>
-      <div id="hunt-spot-gift" style="font-size:9px;color:#34C759;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;"></div>
+    <!-- 스팟 정보 (하늘색, 고정 너비) -->
+    <div id="hunt-spot-info" style="flex-shrink:0;background:#EEF3FF;border:1.5px solid #3A6FD8;border-radius:20px;padding:5px 12px;min-width:80px;max-width:140px;">
+      <div id="hunt-spot-badge" style="font-size:9px;font-weight:700;color:#3A6FD8;white-space:nowrap;">스팟 1</div>
+      <div id="hunt-spot-name" style="font-size:12px;font-weight:900;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      <div id="hunt-spot-gift" style="font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
     </div>
   </div>
   <div class="map-container">
@@ -1057,13 +1058,35 @@ function initHuntMap(){
 // GEOLOCATION
 // ════════════════════════════════════════════
 function startGeolocation(){
-  if(!navigator.geolocation){showToast('위치 서비스 미지원. 데모 모드로 실행합니다.');startDemoMode();return;}
-  S.watchId=navigator.geolocation.watchPosition(onPosition,onGeoError,
-    {enableHighAccuracy:true,maximumAge:1000,timeout:10000});
+  if(!navigator.geolocation){
+    showToast('위치 서비스를 지원하지 않는 브라우저예요.');
+    startDemoMode(); return;
+  }
+  // 먼저 1회 즉시 조회 (빠른 초기화)
+  navigator.geolocation.getCurrentPosition(onPosition, function(e){
+    console.warn('getCurrentPosition 실패:', e.code, e.message);
+  }, {enableHighAccuracy:true, timeout:8000, maximumAge:0});
+
+  // 이후 지속 감시
+  S.watchId = navigator.geolocation.watchPosition(
+    onPosition,
+    function(e){
+      if(e.code === 1){
+        showToast('📍 위치 권한을 허용해주세요!');
+      } else {
+        onGeoError();
+      }
+    },
+    {enableHighAccuracy:true, maximumAge:2000, timeout:12000}
+  );
 }
 function onPosition(pos){
-  S.userPos={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy};
-  updateUserMarker(); updateProximity(); setNearestTarget();
+  S.userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
+  S.accuracy = pos.coords.accuracy;
+  updateUserMarker();
+  setNearestTarget();
+  updateProximity();
+  updateGalleryDists();
 }
 function onGeoError(){ showToast('위치를 가져올 수 없어요. 데모 모드로 실행합니다.'); startDemoMode(); }
 function startDemoMode(){
