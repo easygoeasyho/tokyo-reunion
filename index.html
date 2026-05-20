@@ -1645,10 +1645,20 @@ function selectSpotAndHunt(spotId){
   // DOM 렌더 완료 후 지도/GPS 초기화
   setTimeout(function(){
     if(dbg) dbg.textContent = '⏳ initHuntMap 호출 중...';
-    initHuntMap();
-    if(S.map) S.map.invalidateSize();
+    try{
+      initHuntMap();
+      if(S.map) S.map.invalidateSize();
+    }catch(e){
+      if(dbg) dbg.textContent = '❌ initHuntMap 오류: '+e.message;
+      console.error('initHuntMap 오류:', e);
+    }
     if(dbg) dbg.textContent = '⏳ startGeolocation 호출 중...';
-    startGeolocation();
+    try{
+      startGeolocation();
+    }catch(e){
+      if(dbg) dbg.textContent = '❌ startGeolocation 오류: '+e.message;
+      console.error('startGeolocation 오류:', e);
+    }
     startCompass();
   }, 100);
   // 나침반 즉시 해당 스팟으로 설정
