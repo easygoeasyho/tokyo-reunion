@@ -1238,10 +1238,20 @@ function triggerArrival(){
   localStorage.removeItem('arScreen');
   // 갤러리 갱신 (방문완료 표시)
   renderSpotGallery();
-  if(S.targetSpot.secretCode && S.targetSpot.secretCode.trim()){
-    openSecretModal(S.targetSpot);
+  const spot = S.targetSpot;
+  const codes = spot.gift?.codes || [];
+  const claimed = S.giftClaims[spot.id] || 0;
+  const remaining = Math.max(0, codes.length - claimed);
+  const alreadyClaimed = !!localStorage.getItem('arClaimed_'+S.userFp+'_'+spot.id);
+
+  // 선물 소진 or 이미 수령 → 암호 없이 바로 도착 화면
+  if(remaining === 0 || alreadyClaimed){
+    showArrivalScreen(spot);
+  } else if(spot.secretCode && spot.secretCode.trim()){
+    // 선물 남아있고 암호 설정된 경우 → 암호 입력 팝업
+    openSecretModal(spot);
   } else {
-    showArrivalScreen(S.targetSpot);
+    showArrivalScreen(spot);
   }
 }
 
