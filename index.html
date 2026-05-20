@@ -127,7 +127,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .compass-arrow::before{content:'▲';position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--danger);}
 .compass-center{position:absolute;top:50%;left:50%;width:14px;height:14px;border-radius:50%;background:var(--blue);transform:translate(-50%,-50%);z-index:2;}
 .compass-label{font-size:11px;color:var(--ink-lt);text-align:center;}
-.my-marker{width:16px;height:16px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 2px 8px rgba(58,111,216,.5);}
+.my-marker{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#5B8DEF,#3A6FD8);border:3px solid #fff;box-shadow:0 2px 8px rgba(58,111,216,0.5);position:relative;display:flex;align-items:center;justify-content:center;font-size:14px;animation:marker-pulse 2s infinite;}
+@keyframes marker-pulse{0%,100%{box-shadow:0 2px 8px rgba(58,111,216,0.5),0 0 0 0 rgba(58,111,216,0.3);}50%{box-shadow:0 2px 8px rgba(58,111,216,0.5),0 0 0 8px rgba(58,111,216,0);}}
 
 /* ══ ARRIVAL ══ */
 #screen-arrival{overflow-y:auto;background:var(--bg2);}
@@ -528,11 +529,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
       <div id="hunt-school-label" style="font-size:10px;color:var(--ink-lt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🏫</div>
     </div>
 
-    <!-- 스팟 정보 (우측, 하늘색 pill, 한 줄) -->
-    <div id="hunt-spot-info" style="flex:1;min-width:0;background:#EEF3FF;border:1.5px solid #3A6FD8;border-radius:20px;padding:6px 12px;display:flex;align-items:center;gap:6px;overflow:hidden;">
-      <div id="hunt-spot-badge" style="flex-shrink:0;font-size:10px;font-weight:700;color:#fff;background:#3A6FD8;border-radius:10px;padding:1px 7px;white-space:nowrap;">스팟 1</div>
-      <div id="hunt-spot-name" style="flex:1;font-size:12px;font-weight:700;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-      <div id="hunt-spot-gift" style="flex-shrink:0;font-size:10px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:3px;"></div>
+    <!-- 스팟 정보 (우측, 하늘색 pill) -->
+    <div id="hunt-spot-info" style="flex:1;min-width:0;background:#EEF3FF;border:1.5px solid #3A6FD8;border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:5px;overflow:hidden;">
+      <div id="hunt-spot-badge" style="flex-shrink:0;font-size:9px;font-weight:700;color:#fff;background:#3A6FD8;border-radius:10px;padding:2px 7px;white-space:nowrap;">스팟 1</div>
+      <div id="hunt-spot-name" style="flex:1;font-size:12px;font-weight:800;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      <div id="hunt-spot-gift" style="flex-shrink:0;font-size:10px;font-weight:700;color:#34C759;white-space:nowrap;"></div>
     </div>
   </div>
   <div class="map-container">
@@ -1059,6 +1060,8 @@ function initHuntMap(){
 
 
   setNearestTarget();
+  // 지도 크기 강제 갱신 (숨겨진 상태에서 초기화 후 보정)
+  setTimeout(function(){ if(S.map) S.map.invalidateSize(); }, 200);
 }
 
 // ════════════════════════════════════════════
@@ -1114,7 +1117,7 @@ function startDemoMode(){
 function updateUserMarker(){
   if(!S.map||!S.userPos)return;
   if(!S.userMarker){
-    const icon=L.divIcon({html:'<div class="my-marker"></div>',className:'',iconSize:[16,16],iconAnchor:[8,8]});
+    const icon=L.divIcon({html:'<div class="my-marker">🧍</div>',className:'',iconSize:[16,16],iconAnchor:[8,8]});
     S.userMarker=L.marker([S.userPos.lat,S.userPos.lng],{icon}).addTo(S.map);
     // 최초 위치 파악 시에만 지도 이동
     S.map.setView([S.userPos.lat,S.userPos.lng],16);
@@ -1615,9 +1618,14 @@ function selectSpotAndHunt(spotId){
   document.getElementById('hunt-school-label').textContent =
     (S.school&&S.school!=='미기입') ? '🏫 '+S.school : '보물을 향해 출발! 🚶';
   showScreen('hunt');
-  initHuntMap();
-  startGeolocation();
-  startCompass();
+  // DOM 렌더 완료 후 지도/GPS 초기화 (Leaflet 크기 인식 문제 방지)
+  setTimeout(function(){
+    initHuntMap();
+    // 지도 크기 강제 갱신
+    if(S.map) S.map.invalidateSize();
+    startGeolocation();
+    startCompass();
+  }, 100);
   // 나침반 즉시 해당 스팟으로 설정
   var csnEl = document.getElementById('compass-spot-name'); if(csnEl) csnEl.textContent = spot.emoji+' '+spot.name;
   if(spot.hint){
@@ -1637,8 +1645,12 @@ function selectSpotAndHunt(spotId){
     var tc = (spot.gift&&spot.gift.codes) ? spot.gift.codes.length : 0;
     var cl = S.giftClaims[spot.id]||0;
     var rm = Math.max(0,tc-cl);
-    giftEl2.textContent = tc>0 ? (rm===0?'선물 소진':'잔여 '+rm+'/'+tc+'개') : '';
-    giftEl2.style.color = rm===0?'#FF3B30':'#34C759';
+    if(tc>0){
+      giftEl2.textContent = rm===0 ? '🎟 소진' : '🎟 '+rm+'/'+tc;
+      giftEl2.style.color = rm===0?'#FF3B30':'#34C759';
+    } else {
+      giftEl2.textContent = '';
+    }
   }
   showToast(spot.emoji+' '+spot.name+'으로 출발!');
 }
