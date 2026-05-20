@@ -167,7 +167,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .tab-bar{display:flex;border-bottom:2px solid var(--border);width:100%;background:#fff;border-radius:var(--r) var(--r) 0 0;}
 .tab-btn{flex:1;padding:10px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;color:var(--ink-lt);background:none;border:none;font-family:'Noto Sans KR',sans-serif;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .2s;}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
-.tab-pane{display:none;width:100%;}
+.tab-pane{display:none;padding:12px 16px 80px;}
 .tab-pane.active{display:block;}
 /* ── 댓글 카드 ── */
 .comment-item{background:#fff;border-radius:var(--rsm);padding:0;margin-bottom:10px;border:1px solid var(--border);overflow:hidden;}
@@ -186,10 +186,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .comment-text{font-size:13px;color:var(--ink);line-height:1.65;}
 .comment-divider{height:1px;background:var(--bg2);margin:0;}
 .comment-notice{font-size:11px;color:var(--ink-mid);background:var(--bg2);border-radius:var(--rsm);border-left:3px solid var(--blue);padding:10px 12px;margin-bottom:10px;line-height:1.7;}
-.comment-input-row{display:flex;gap:8px;margin-top:10px;}
-.comment-input{flex:1;background:#fff;border:1.5px solid var(--border);border-radius:var(--rsm);padding:10px 14px;font-size:13px;color:var(--ink);font-family:'Noto Sans KR',sans-serif;outline:none;}
+.comment-input-row{display:flex;gap:8px;align-items:center;padding:12px 16px 20px;border-top:1px solid var(--border);margin-top:8px;background:#fff;position:sticky;bottom:0;}
+.comment-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 14px;font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;background:var(--bg2);}
 .comment-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,111,216,0.1);}
-.comment-submit{background:var(--blue);border:none;border-radius:var(--rsm);padding:10px 16px;color:#fff;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;}
+.comment-submit{padding:11px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rsm);font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 /* 랭킹 */
 .ranking-item{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;}
 .rank-num{font-size:20px;font-weight:900;color:var(--blue);min-width:28px;text-align:center;}
@@ -2152,11 +2152,13 @@ function closeSpotPopup(){
 
 function confirmSpotSelect(){
   if(!_popupSpot) return;
-  // 닉네임 확인 (팝업 닫기 전에)
+  // spotId를 먼저 저장 (closeSpotPopup이 _popupSpot을 null로 만들기 때문)
+  var targetSpotId = _popupSpot.id;
+  // 닉네임 확인
   var nick = S.nickname || document.getElementById('nickname-input').value.trim();
   if(!nick){
-    closeSpotPopup();
     showToast('닉네임을 먼저 입력해주세요 😊');
+    closeSpotPopup();
     document.getElementById('nickname-input').focus();
     return;
   }
@@ -2165,7 +2167,7 @@ function confirmSpotSelect(){
   localStorage.setItem('arNickname', S.nickname);
   localStorage.setItem('arSchool', S.school);
   closeSpotPopup();
-  selectSpotAndHunt(_popupSpot.id);
+  selectSpotAndHunt(targetSpotId);  // null 아닌 저장된 ID 사용
 }
 
 // ════════════════════════════════════════════
@@ -2836,12 +2838,16 @@ waitFirebase(()=>{
     <div class="spot-popup-row" id="popup-station-row" style="display:none;">🚉 <b id="popup-station"></b></div>
     <div class="spot-popup-row" id="popup-hint-row" style="display:none;">💡 <span id="popup-hint"></span></div>
 
-    <!-- ① 방문자 + 선물 현황 박스 -->
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-top:10px;">
-      <div style="font-size:11px;font-weight:700;color:var(--ink-mid);margin-bottom:8px;">👣 지금까지 <b id="popup-visitors" style="color:var(--blue);">0</b>명이 다녀갔어요.</div>
+    <!-- ① 방문자 정보 (박스 밖) -->
+    <div style="font-size:12px;color:var(--ink-mid);margin-top:10px;margin-bottom:8px;">
+      👣 지금까지 <b id="popup-visitors" style="color:var(--blue);">0</b>명이 다녀갔어요.
+    </div>
+
+    <!-- 선물 현황 박스 (방문자 정보 제외) -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-bottom:4px;">
       <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px;">🎁 선물 현황</div>
       <div id="popup-msgtitle-row" style="display:none;font-size:12px;color:var(--ink-mid);margin-bottom:4px;">💬 <span id="popup-msgtitle"></span></div>
-      <div id="popup-gift-row" style="display:none;font-size:12px;font-weight:700;" >
+      <div id="popup-gift-row" style="display:none;font-size:12px;font-weight:700;">
         🎟️ <span id="popup-gift"></span>
       </div>
       <div id="popup-no-gift-row" style="display:none;font-size:12px;color:var(--ink-lt);">선물 정보가 없습니다.</div>
