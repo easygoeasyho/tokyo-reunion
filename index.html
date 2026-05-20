@@ -930,11 +930,30 @@ async function loadSpots(){
   if(!fbReady()) return;
   try{
     S.spots = await fbLoadSpots();
+    // 각 스팟의 수령 카운트 병렬로 로드
+    await Promise.all(S.spots.map(async function(sp){
+      try{
+        S.giftClaims[sp.id] = await fbGetClaimedCount(sp.id);
+      }catch(e){ S.giftClaims[sp.id] = 0; }
+    }));
     renderSpotStatus();
     renderAdminSpotList();
-    // 도착 화면이 이미 열려 있으면 필터탭 갱신
+    renderSpotGallery();
     if(S._currentSpot && S.currentScreen==='arrival'){
-                }
+      renderSpotFilterTabs();
+    }
+    // 헌트 화면 중이면 헤더 스팟 정보도 갱신
+    if(S.currentScreen==='hunt' && S.targetSpot){
+      var sp = S.targetSpot;
+      var giftEl2 = document.getElementById('hunt-spot-gift');
+      if(giftEl2){
+        var tc = (sp.gift&&sp.gift.codes) ? sp.gift.codes.length : 0;
+        var cl = S.giftClaims[sp.id]||0;
+        var rm = Math.max(0,tc-cl);
+        giftEl2.textContent = tc>0 ? (rm===0?'선물 소진':'잔여 '+rm+'/'+tc+'개') : '';
+        giftEl2.style.color = rm===0?'#FF3B30':'#34C759';
+      }
+    }
   }catch(e){ console.error('loadSpots err',e); }
 }
 
