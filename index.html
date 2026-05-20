@@ -74,7 +74,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .field-input{width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 14px;font-size:14px;color:var(--ink);font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;}
 .field-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,111,216,0.12);}
 .field-input::placeholder{color:var(--ink-lt);}
-.notice-box{background:var(--blue-lt);border:1px solid rgba(58,111,216,0.2);border-radius:var(--rsm);padding:12px 14px;font-size:12px;color:var(--ink-mid);line-height:1.85;max-height:100px;overflow-y:auto;}
+.notice-box{background:var(--blue-lt);border-left:3px solid var(--blue);border-radius:var(--rsm);padding:12px 14px;font-size:12px;color:var(--ink-mid);line-height:1.8;min-height:140px;max-height:200px;overflow-y:scroll;scrollbar-width:thin;scrollbar-color:var(--blue) var(--blue-lt);}
 .notice-box b{color:var(--blue-dk);font-weight:700;}
 .btn-primary{width:100%;padding:15px;border-radius:var(--r);border:none;background:linear-gradient(135deg,var(--blue),var(--blue-dk));color:#fff;font-size:15px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:.3px;transition:transform .1s,box-shadow .15s;box-shadow:0 6px 20px rgba(58,111,216,0.35);}
 .btn-primary:active{transform:scale(.97);}
@@ -483,7 +483,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
         <div class="field-label" style="margin-bottom:5px;">🏫 학교명 <span class="opt">선택</span></div>
         <input class="field-input" id="school-input" type="text" placeholder="예: 도쿄, 메이지, 리츠메이칸..." maxlength="20" autocomplete="off">
       </div>
-      <!-- 수정 버튼: 두 입력란 아래 -->
+      <!-- 입력 완료 버튼 / 수정 버튼 -->
+      <button id="nick-submit-btn" onclick="submitNickname()" style="margin-top:10px;width:100%;background:var(--blue);border:none;border-radius:var(--rsm);padding:11px;font-size:13px;font-weight:700;color:#fff;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">✅ 입력 완료</button>
       <button id="nick-edit-btn" onclick="toggleNickEdit()" style="display:none;margin-top:10px;width:100%;background:#fff;border:1.5px solid var(--blue);border-radius:var(--rsm);padding:9px;font-size:13px;font-weight:700;color:var(--blue);font-family:'Noto Sans KR',sans-serif;cursor:pointer;">✏️ 닉네임 · 학교명 수정</button>
     </div>
     <div>
@@ -514,20 +515,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 </div>
 
 
-<!-- ════ SCREEN 1.5: 스팟 선택 ════ -->
-<div class="screen hidden" id="screen-spotselect">
-  <div class="spotselect-header">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <button onclick="goToHome()" style="background:none;border:none;padding:4px 6px 4px 0;cursor:pointer;font-size:22px;color:var(--ink-mid);line-height:1;">←</button>
-      <div class="spotselect-title">🗺️ 스팟 선택</div>
-    </div>
-    <div class="spotselect-sub" id="spotselect-sub">방문할 스팟을 선택하세요.<br>・선생님의 메시지&amp;선물: 해당 스팟 도착 시 수령 가능<br><span style="font-size:11px;">※ 선물 수령은 스팟별 1회씩만 가능 (같은 스팟에서 중복 수령 불가)</span></div>
-  </div>
-  <div class="spotselect-body">
-
-    <div id="spot-card-list"></div>
-  </div>
-</div>
 
 <!-- ════ SCREEN 2: HUNT ════ -->
 <div class="screen hidden" id="screen-hunt">
@@ -956,7 +943,7 @@ function showScreen(id){
   S.currentScreen=id;
   const adminBtn=document.getElementById('admin-btn');
   // intro, spotselect에서만 관리자 버튼 표시
-  adminBtn.style.display=(id==='intro'||id==='spotselect')?'block':'none';
+  adminBtn.style.display=(id==='intro')?'block':'none';
 }
 
 // ════════════════════════════════════════════
@@ -1170,8 +1157,8 @@ function triggerArrival(){
   // 도착했으니 진행 상태 초기화
   localStorage.removeItem('arSelectedSpot');
   localStorage.removeItem('arScreen');
-  // 스팟 선택 화면 업데이트 (방문완료 표시)
-  renderSpotSelectScreen();
+  // 갤러리 갱신 (방문완료 표시)
+  renderSpotGallery();
   if(S.targetSpot.secretCode && S.targetSpot.secretCode.trim()){
     openSecretModal(S.targetSpot);
   } else {
@@ -1425,20 +1412,21 @@ function applyNickSavedMode(){
   const schoolInput = document.getElementById('school-input');
   const editBtn = document.getElementById('nick-edit-btn');
   if(!nickInput) return;
+  var submitBtn = document.getElementById('nick-submit-btn');
   if(savedNick){
-    // 비활성화 + 수정 버튼 표시
     nickInput.disabled = true;
     nickInput.style.opacity = '0.6';
     nickInput.style.background = 'var(--bg2)';
     if(schoolInput){ schoolInput.disabled=true; schoolInput.style.opacity='0.6'; schoolInput.style.background='var(--bg2)'; }
     if(editBtn) editBtn.style.display='block';
+    if(submitBtn) submitBtn.style.display='none';
   } else {
-    // 활성화
     nickInput.disabled = false;
     nickInput.style.opacity = '1';
     nickInput.style.background = '';
     if(schoolInput){ schoolInput.disabled=false; schoolInput.style.opacity='1'; schoolInput.style.background=''; }
     if(editBtn) editBtn.style.display='none';
+    if(submitBtn) submitBtn.style.display='block';
   }
 }
 
@@ -1449,7 +1437,9 @@ function toggleNickEdit(){
   const editBtn = document.getElementById('nick-edit-btn');
   nickInput.disabled = false; nickInput.style.opacity='1'; nickInput.style.background='';
   if(schoolInput){ schoolInput.disabled=false; schoolInput.style.opacity='1'; schoolInput.style.background=''; }
-  if(editBtn) editBtn.textContent='완료';
+  if(editBtn) editBtn.style.display='none';
+  var subBtn = document.getElementById('nick-submit-btn');
+  if(subBtn) subBtn.style.display='block';
   nickInput.focus();
   // 완료 버튼으로 바꾸면 다시 저장
   editBtn.onclick = function(){
@@ -1460,12 +1450,28 @@ function toggleNickEdit(){
     localStorage.setItem('arNickname', S.nickname);
     localStorage.setItem('arSchool', S.school);
     applyNickSavedMode();
-    editBtn.textContent='수정';
-    editBtn.onclick = toggleNickEdit;
     showToast('✅ 닉네임이 수정되었습니다');
   };
 }
 
+
+// ── 닉네임 입력 완료 ──
+function submitNickname(){
+  var nick = document.getElementById('nickname-input').value.trim();
+  if(!nick){ showToast('닉네임을 입력해주세요 😊'); return; }
+  S.nickname = nick;
+  var schoolVal = document.getElementById('school-input').value.trim();
+  S.school = schoolVal||'미기입';
+  localStorage.setItem('arNickname', S.nickname);
+  localStorage.setItem('arSchool', S.school);
+  showToast('✅ 입력되었습니다! 스팟을 선택해주세요.');
+  applyNickSavedMode();
+  // 갤러리 영역으로 부드럽게 스크롤
+  setTimeout(function(){
+    var g = document.getElementById('spot-gallery');
+    if(g) g.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 300);
+}
 // ════════════════════════════════════════════
 // 스팟 선택 화면
 // ════════════════════════════════════════════
@@ -2101,6 +2107,30 @@ function openSpotPopup(sp){
     hintRow.style.display = 'none';
   }
 
+  // 소타이틀
+  var msgTitleRow = document.getElementById('popup-msgtitle-row');
+  var msgTitleEl = document.getElementById('popup-msgtitle');
+  if(sp.msgTitle && sp.msgTitle !== '선생님 응원 메시지'){
+    msgTitleEl.textContent = sp.msgTitle;
+    msgTitleRow.style.display = 'flex';
+  } else {
+    msgTitleRow.style.display = 'none';
+  }
+
+  // 쿠폰명 + 잔여 개수
+  var giftRow = document.getElementById('popup-gift-row');
+  var giftEl = document.getElementById('popup-gift');
+  var totalCodes = (sp.gift&&sp.gift.codes) ? sp.gift.codes.length : 0;
+  if(totalCodes > 0 && sp.gift && sp.gift.item){
+    var claimed = S.giftClaims[sp.id]||0;
+    var rem = Math.max(0, totalCodes-claimed);
+    giftEl.textContent = sp.gift.item + ' · 잔여 '+rem+'/'+totalCodes+'개';
+    giftEl.style.color = rem===0 ? '#FF3B30' : '#34C759';
+    giftRow.style.display = 'flex';
+  } else {
+    giftRow.style.display = 'none';
+  }
+
   // 방문자 수 (댓글 수 기준)
   var visitors = (S.comments[sp.id]||[]).length;
   document.getElementById('popup-visitors').textContent = visitors;
@@ -2115,15 +2145,19 @@ function closeSpotPopup(){
 
 function confirmSpotSelect(){
   if(!_popupSpot) return;
-  closeSpotPopup();
-  // 닉네임 확인
-  var nick = document.getElementById('nickname-input').value.trim();
-  if(!nick){ showToast('닉네임을 먼저 입력해주세요 😊'); return; }
+  // 닉네임 확인 (팝업 닫기 전에)
+  var nick = S.nickname || document.getElementById('nickname-input').value.trim();
+  if(!nick){
+    closeSpotPopup();
+    showToast('닉네임을 먼저 입력해주세요 😊');
+    document.getElementById('nickname-input').focus();
+    return;
+  }
   S.nickname = nick;
-  var schoolVal = document.getElementById('school-input').value.trim();
-  S.school = schoolVal||'미기입';
+  S.school = S.school || document.getElementById('school-input').value.trim() || '미기입';
   localStorage.setItem('arNickname', S.nickname);
   localStorage.setItem('arSchool', S.school);
+  closeSpotPopup();
   selectSpotAndHunt(_popupSpot.id);
 }
 
@@ -2751,9 +2785,9 @@ waitFirebase(()=>{
         return;
       }
     }
-    // 기본: 스팟 선택 화면
-    renderSpotSelectScreen();
-    showScreen('spotselect');
+    // 기본: 홈화면 (갤러리)
+    renderSpotGallery();
+    showScreen('intro');
   });
 });
 </script>
@@ -2785,6 +2819,8 @@ waitFirebase(()=>{
     <div class="spot-popup-row">📍 <span id="popup-dist">위치 확인 중...</span></div>
     <div class="spot-popup-row" id="popup-station-row" style="display:none;">🚉 <b id="popup-station"></b></div>
     <div class="spot-popup-row" id="popup-hint-row" style="display:none;">💡 <span id="popup-hint"></span></div>
+    <div class="spot-popup-row" id="popup-msgtitle-row" style="display:none;">💬 <span id="popup-msgtitle"></span></div>
+    <div class="spot-popup-row" id="popup-gift-row" style="display:none;">🎁 <span id="popup-gift"></span></div>
     <div class="spot-popup-row">👣 지금까지 <b id="popup-visitors">0</b>명이 다녀갔어요.</div>
     <div class="spot-popup-btns">
       <button class="spot-popup-btn-cancel" onclick="closeSpotPopup()">다른 스팟 고르기</button>
