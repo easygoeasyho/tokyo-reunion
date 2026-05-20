@@ -571,7 +571,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
       </div>
     </div>
     <div class="compass-label" id="compass-label">나침반이 스팟 방향을 가리킵니다</div>
-    <div id="gps-debug" style="font-size:11px;color:#FF3B30;text-align:center;padding:4px 8px;word-break:break-all;"></div>
+
     <div class="dist-progress-wrap">
       <div class="dist-progress-bar" id="dist-progress-bar" style="width:0%;"></div>
     </div>
@@ -1072,12 +1072,12 @@ function startGeolocation(){
   var debugEl = document.getElementById('gps-debug');
 
   if(!navigator.geolocation){
-    if(debugEl) debugEl.textContent = '❌ navigator.geolocation 없음';
+    if(debugEl){ debugEl.style.display='block'; debugEl.textContent = '❌ navigator.geolocation 없음 - 브라우저 미지원'; }
     showToast('위치 서비스를 지원하지 않는 브라우저예요.');
     startDemoMode(); return;
   }
 
-  if(debugEl) debugEl.textContent = '🔄 GPS 권한 요청 중...';
+  if(debugEl){ debugEl.style.display='block'; debugEl.textContent = '🔄 GPS 권한 요청 중... (navigator.geolocation 있음)'; }
 
   navigator.geolocation.getCurrentPosition(
     function(pos){
@@ -1111,6 +1111,12 @@ function startGeolocation(){
 function onPosition(pos){
   S.userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
   S.accuracy = pos.coords.accuracy;
+  var dbg = document.getElementById('gps-debug');
+  if(dbg){
+    dbg.style.background='rgba(0,100,0,0.85)';
+    dbg.textContent = '✅ GPS 성공! 위도:'+pos.coords.latitude.toFixed(5)+' 경도:'+pos.coords.longitude.toFixed(5)+' 정확도:'+Math.round(pos.coords.accuracy)+'m';
+    setTimeout(function(){ dbg.style.display='none'; }, 3000);
+  }
   updateUserMarker();
   setNearestTarget();
   updateProximity();
@@ -1633,11 +1639,15 @@ function selectSpotAndHunt(spotId){
   document.getElementById('hunt-school-label').textContent =
     (S.school&&S.school!=='미기입') ? '🏫 '+S.school : '보물을 향해 출발! 🚶';
   showScreen('hunt');
-  // DOM 렌더 완료 후 지도/GPS 초기화 (Leaflet 크기 인식 문제 방지)
+  // 즉시 디버그 표시
+  var dbg = document.getElementById('gps-debug');
+  if(dbg){ dbg.style.display='block'; dbg.textContent = '⏳ 헌트 화면 진입 - GPS 초기화 대기 중...'; }
+  // DOM 렌더 완료 후 지도/GPS 초기화
   setTimeout(function(){
+    if(dbg) dbg.textContent = '⏳ initHuntMap 호출 중...';
     initHuntMap();
-    // 지도 크기 강제 갱신
     if(S.map) S.map.invalidateSize();
+    if(dbg) dbg.textContent = '⏳ startGeolocation 호출 중...';
     startGeolocation();
     startCompass();
   }, 100);
@@ -3007,5 +3017,7 @@ waitFirebase(()=>{
     </div>
   </div>
 </div>
+  <!-- GPS 디버그 오버레이 -->
+  <div id="gps-debug" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,0.85);color:#fff;font-size:12px;padding:10px 14px;word-break:break-all;line-height:1.6;"></div>
 </body>
 </html>
