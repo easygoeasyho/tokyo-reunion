@@ -108,24 +108,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .prox-overlay.warm{background:rgba(224,122,0,.10);}
 .prox-overlay.hot{background:rgba(224,58,58,.14);animation:hotpulse 1.2s ease-in-out infinite;}
 @keyframes hotpulse{0%,100%{opacity:1}50%{opacity:.5}}
-.hint-btn{position:absolute;top:12px;left:12px;z-index:500;background:rgba(255,255,255,.95);border:1px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:var(--sh2);}
+
 .hint-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-.hint-panel{position:absolute;top:54px;left:12px;right:12px;z-index:500;background:rgba(255,255,255,.97);border:1px solid var(--border);border-radius:var(--rsm);padding:14px 16px;font-size:13px;color:var(--ink);line-height:1.7;box-shadow:var(--sh);display:none;}
+
 .hint-panel.show{display:block;}
-.hint-panel-title{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+
 .prox-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.85);z-index:600;background:#fff;border-radius:20px;padding:24px 28px;text-align:center;box-shadow:0 12px 50px rgba(0,0,0,.18);pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;max-width:280px;width:calc(100% - 48px);}
 .prox-popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
 .prox-popup-icon{font-size:48px;margin-bottom:8px;}
 .prox-popup-title{font-family:'Black Han Sans',sans-serif;font-size:20px;color:var(--blue);margin-bottom:6px;}
 .prox-popup-sub{font-size:13px;color:var(--ink-mid);line-height:1.6;}
 .compass-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid var(--border);padding:14px 20px 20px;z-index:500;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 -4px 20px rgba(0,0,0,.06);backdrop-filter:blur(12px);}
-.compass-spot-name{font-size:14px;font-weight:700;color:var(--ink);}
-.compass-wrap{position:relative;width:110px;height:110px;}
-.compass-bg{width:110px;height:110px;border-radius:50%;background:var(--blue-lt);border:2px solid rgba(58,111,216,0.3);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh);}
-.compass-ring{position:absolute;inset:8px;border-radius:50%;border:1px dashed rgba(58,111,216,0.25);}
-.compass-arrow{position:absolute;top:50%;left:50%;width:4px;height:40px;margin-left:-2px;margin-top:-36px;background:linear-gradient(to bottom,var(--danger) 55%,rgba(224,58,58,.2));border-radius:3px;transform-origin:bottom center;transition:transform .5s ease;}
+
+.compass-wrap{position:relative;width:160px;height:160px;}
+.compass-bg{width:160px;height:160px;border-radius:50%;background:var(--blue-lt);border:2px solid rgba(58,111,216,0.3);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh);}
+.compass-ring{position:absolute;inset:8px;border-radius:50%;border:1.5px dashed rgba(58,111,216,.3);}
+.compass-arrow{position:absolute;top:50%;left:50%;width:6px;height:72px;margin-left:-3px;margin-top:-72px;transform-origin:bottom center;background:linear-gradient(to top,#FF3B30,var(--blue));border-radius:3px 3px 0 0;transition:transform .3s ease;}
 .compass-arrow::before{content:'▲';position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--danger);}
-.compass-center{position:absolute;top:50%;left:50%;width:10px;height:10px;background:var(--ink);border-radius:50%;transform:translate(-50%,-50%);z-index:2;}
+.compass-center{position:absolute;top:50%;left:50%;width:14px;height:14px;border-radius:50%;background:var(--blue);transform:translate(-50%,-50%);z-index:2;}
 .compass-label{font-size:11px;color:var(--ink-lt);text-align:center;}
 .my-marker{width:16px;height:16px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 2px 8px rgba(58,111,216,.5);}
 
@@ -518,22 +518,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 
 <!-- ════ SCREEN 2: HUNT ════ -->
 <div class="screen hidden" id="screen-hunt">
-  <div class="hunt-header">
-    <button onclick="backToSpotSelect()" style="background:none;border:none;padding:4px 8px 4px 0;cursor:pointer;font-size:22px;color:var(--ink-mid);line-height:1;flex-shrink:0;">←</button>
-    <div style="flex:1;">
-      <div class="hunt-nick" id="hunt-nick-label">탐험가</div>
-      <div class="hunt-school" id="hunt-school-label">보물을 향해 출발! 🚶</div>
+  <div class="hunt-header" style="gap:6px;">
+    <button onclick="backToSpotSelect()" style="background:none;border:none;padding:4px 6px 4px 0;cursor:pointer;font-size:22px;color:var(--ink-mid);line-height:1;flex-shrink:0;">←</button>
+    <!-- 닉네임/학교 (흰 배경, 최대 너비 제한) -->
+    <div style="flex:1;min-width:0;background:#fff;border:1px solid var(--border);border-radius:20px;padding:4px 10px;overflow:hidden;">
+      <div class="hunt-nick" id="hunt-nick-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">탐험가</div>
+      <div class="hunt-school" id="hunt-school-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">보물을 향해 출발! 🚶</div>
     </div>
-    <div class="hunt-dist-pill" id="dist-pill">위치 확인 중...</div>
+    <!-- 스팟 정보 (하늘색 배경) -->
+    <div id="hunt-spot-info" style="flex-shrink:0;max-width:130px;background:#EEF3FF;border:1px solid var(--blue);border-radius:20px;padding:4px 10px;text-align:right;">
+      <div id="hunt-spot-badge" style="font-size:9px;font-weight:700;color:var(--blue);white-space:nowrap;">스팟 1</div>
+      <div id="hunt-spot-name" style="font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;"></div>
+      <div id="hunt-spot-gift" style="font-size:9px;color:#34C759;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;"></div>
+    </div>
   </div>
   <div class="map-container">
     <div id="map"></div>
     <div class="prox-overlay" id="prox-overlay"></div>
-    <button class="hint-btn" id="hint-btn" onclick="toggleHint()">💡 힌트</button>
-    <div class="hint-panel" id="hint-panel">
-      <div class="hint-panel-title">💡 힌트</div>
-      <div id="hint-text">힌트가 없습니다.</div>
-    </div>
+
     <div class="prox-popup" id="prox-popup">
       <div class="prox-popup-icon" id="prox-popup-icon">🔥</div>
       <div class="prox-popup-title" id="prox-popup-title">거의 다 왔어요!</div>
@@ -541,7 +543,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
     </div>
   </div>
   <div class="compass-panel">
-    <div class="compass-spot-name" id="compass-spot-name">목적지 탐색 중...</div>
     <div class="compass-wrap">
       <div class="compass-bg">
         <div class="compass-ring"></div>
@@ -552,6 +553,22 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
     <div class="compass-label" id="compass-label">나침반이 스팟 방향을 가리킵니다</div>
     <div class="dist-progress-wrap">
       <div class="dist-progress-bar" id="dist-progress-bar" style="width:0%;"></div>
+    </div>
+    <!-- ④ 힌트 + 내 위치 버튼 -->
+    <div style="display:flex;gap:10px;margin-top:12px;justify-content:center;">
+      <button onclick="toggleHintPanel()" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:10px 20px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+        <span style="font-size:20px;">💡</span>
+        <span style="font-size:11px;font-weight:700;color:var(--ink-mid);">힌트</span>
+      </button>
+      <button onclick="locateMe()" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:10px 20px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+        <span style="font-size:20px;">📍</span>
+        <span style="font-size:11px;font-weight:700;color:var(--ink-mid);">내 위치</span>
+      </button>
+    </div>
+    <!-- 힌트 패널 (버튼 클릭 시 표시) -->
+    <div id="hint-panel-new" style="display:none;background:var(--blue-lt);border:1px solid var(--blue);border-radius:var(--rsm);padding:10px 14px;margin-top:8px;font-size:12px;color:var(--ink-mid);line-height:1.6;width:100%;box-sizing:border-box;">
+      <b style="color:var(--blue);">💡 힌트</b><br>
+      <span id="hint-text-new">힌트가 없습니다.</span>
     </div>
   </div>
 </div>
@@ -1012,21 +1029,7 @@ function initHuntMap(){
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(S.map);
   L.control.zoom({position:'topright'}).addTo(S.map);
 
-  // 내 위치로 돌아가기 버튼
-  const locBtn = L.control({position:'bottomright'});
-  locBtn.onAdd = function(){
-    const btn = L.DomUtil.create('button','locate-me-btn');
-    btn.innerHTML = '📍';
-    btn.title = '내 위치로';
-    btn.style.cssText = 'width:40px;height:40px;border-radius:50%;border:2px solid var(--blue);background:#fff;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;margin-bottom:80px;';
-    L.DomEvent.on(btn,'click',function(e){
-      L.DomEvent.stopPropagation(e);
-      if(S.userPos) S.map.setView([S.userPos.lat,S.userPos.lng],16);
-      else showToast('위치를 아직 파악 중이에요.');
-    });
-    return btn;
-  };
-  locBtn.addTo(S.map);
+
 
   setNearestTarget();
 }
@@ -1234,6 +1237,15 @@ function checkSecretCode(){
 // ════════════════════════════════════════════
 // HINT
 // ════════════════════════════════════════════
+
+function toggleHintPanel(){
+  var p = document.getElementById('hint-panel-new');
+  if(p) p.style.display = p.style.display==='none' ? 'block' : 'none';
+}
+function locateMe(){
+  if(S.userPos) S.map && S.map.setView([S.userPos.lat,S.userPos.lng],16);
+  else showToast('위치를 아직 파악 중이에요.');
+}
 function toggleHint(){
   S.hintOpen=!S.hintOpen;
   const btn=document.getElementById('hint-btn');
@@ -1535,8 +1547,27 @@ function selectSpotAndHunt(spotId){
   startCompass();
   // 나침반 즉시 해당 스팟으로 설정
   document.getElementById('compass-spot-name').textContent = `${spot.emoji} ${spot.name}`;
-  if(spot.hint) document.getElementById('hint-text').textContent = spot.hint;
-  showToast(`${spot.emoji} ${spot.name}으로 출발!`);
+  if(spot.hint){
+    var htOld = document.getElementById('hint-text');
+    var htNew = document.getElementById('hint-text-new');
+    if(htOld) htOld.textContent = spot.hint;
+    if(htNew) htNew.textContent = spot.hint;
+  }
+  // 헤더 스팟 정보 업데이트
+  var spIdx2 = S.spots.findIndex(function(s){ return s.id===spot.id; });
+  var badgeEl = document.getElementById('hunt-spot-badge');
+  var nameEl2 = document.getElementById('hunt-spot-name');
+  var giftEl2 = document.getElementById('hunt-spot-gift');
+  if(badgeEl) badgeEl.textContent = '스팟 '+(spIdx2+1);
+  if(nameEl2) nameEl2.textContent = spot.name;
+  if(giftEl2){
+    var tc = (spot.gift&&spot.gift.codes) ? spot.gift.codes.length : 0;
+    var cl = S.giftClaims[spot.id]||0;
+    var rm = Math.max(0,tc-cl);
+    giftEl2.textContent = tc>0 ? (rm===0?'선물 소진':'잔여 '+rm+'/'+tc+'개') : '';
+    giftEl2.style.color = rm===0?'#FF3B30':'#34C759';
+  }
+  showToast(spot.emoji+' '+spot.name+'으로 출발!');
 }
 
 // 완료된 스팟 클릭 → 댓글/랭킹 바로 보기
