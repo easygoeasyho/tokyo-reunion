@@ -404,8 +404,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .spot-popup-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-mid);margin-bottom:8px;}
 .spot-popup-row b{color:var(--ink);}
 .spot-popup-btns{display:flex;gap:10px;margin-top:18px;}
-.spot-popup-btn-cancel{flex:1;padding:13px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rsm);font-size:14px;font-weight:700;color:var(--ink-mid);font-family:'Noto Sans KR',sans-serif;cursor:pointer;}
-.spot-popup-btn-go{flex:2;padding:13px;background:var(--blue);border:none;border-radius:var(--rsm);font-size:14px;font-weight:700;color:#fff;font-family:'Noto Sans KR',sans-serif;cursor:pointer;}
+.spot-popup-btn-cancel{flex:1;padding:13px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rsm);font-size:13px;font-weight:700;color:var(--ink-mid);font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;}
+.spot-popup-btn-go{flex:1;padding:13px;background:var(--blue);border:none;border-radius:var(--rsm);font-size:13px;font-weight:700;color:#fff;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;}
 </style>
 
 <!-- Firebase SDK -->
@@ -2077,6 +2077,9 @@ function openSpotPopup(sp){
   _popupSpot = sp;
   document.getElementById('popup-emoji').textContent = sp.emoji||'📍';
   document.getElementById('popup-name').textContent = sp.name;
+  // ③ 스팟 번호 뱃지
+  var spIdx = S.spots.findIndex(function(s){ return s.id===sp.id; });
+  document.getElementById('popup-spot-badge').textContent = '스팟 '+(spIdx+1);
 
   // 거리
   var distEl = document.getElementById('popup-dist');
@@ -2126,9 +2129,13 @@ function openSpotPopup(sp){
     var rem = Math.max(0, totalCodes-claimed);
     giftEl.textContent = sp.gift.item + ' · 잔여 '+rem+'/'+totalCodes+'개';
     giftEl.style.color = rem===0 ? '#FF3B30' : '#34C759';
-    giftRow.style.display = 'flex';
+    giftRow.style.display = 'block';
+    var noGiftRow2 = document.getElementById('popup-no-gift-row');
+    if(noGiftRow2) noGiftRow2.style.display = 'none';
   } else {
     giftRow.style.display = 'none';
+    var noGiftRow = document.getElementById('popup-no-gift-row');
+    if(noGiftRow) noGiftRow.style.display = 'block';
   }
 
   // 방문자 수 (댓글 수 기준)
@@ -2814,17 +2821,36 @@ waitFirebase(()=>{
 <div class="spot-popup-overlay hidden" id="spot-popup">
   <div class="spot-popup-box">
     <div class="spot-popup-handle"></div>
-    <div class="spot-popup-emoji" id="popup-emoji">📍</div>
-    <div class="spot-popup-name" id="popup-name">스팟 이름</div>
+
+    <!-- ③ 스팟 번호 뱃지 + 이모지 + 이름 -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div id="popup-emoji" style="font-size:32px;flex-shrink:0;">📍</div>
+      <div>
+        <div id="popup-spot-badge" style="display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--blue);padding:2px 10px;border-radius:20px;margin-bottom:4px;">스팟 1</div>
+        <div id="popup-name" style="font-size:18px;font-weight:900;font-family:'Black Han Sans',sans-serif;color:var(--ink);">스팟 이름</div>
+      </div>
+    </div>
+
+    <!-- 위치 정보 -->
     <div class="spot-popup-row">📍 <span id="popup-dist">위치 확인 중...</span></div>
     <div class="spot-popup-row" id="popup-station-row" style="display:none;">🚉 <b id="popup-station"></b></div>
     <div class="spot-popup-row" id="popup-hint-row" style="display:none;">💡 <span id="popup-hint"></span></div>
-    <div class="spot-popup-row" id="popup-msgtitle-row" style="display:none;">💬 <span id="popup-msgtitle"></span></div>
-    <div class="spot-popup-row" id="popup-gift-row" style="display:none;">🎁 <span id="popup-gift"></span></div>
-    <div class="spot-popup-row">👣 지금까지 <b id="popup-visitors">0</b>명이 다녀갔어요.</div>
+
+    <!-- ① 방문자 + 선물 현황 박스 -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-top:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--ink-mid);margin-bottom:8px;">👣 지금까지 <b id="popup-visitors" style="color:var(--blue);">0</b>명이 다녀갔어요.</div>
+      <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px;">🎁 선물 현황</div>
+      <div id="popup-msgtitle-row" style="display:none;font-size:12px;color:var(--ink-mid);margin-bottom:4px;">💬 <span id="popup-msgtitle"></span></div>
+      <div id="popup-gift-row" style="display:none;font-size:12px;font-weight:700;" >
+        🎟️ <span id="popup-gift"></span>
+      </div>
+      <div id="popup-no-gift-row" style="display:none;font-size:12px;color:var(--ink-lt);">선물 정보가 없습니다.</div>
+    </div>
+
+    <!-- ② 버튼 동일 너비 -->
     <div class="spot-popup-btns">
-      <button class="spot-popup-btn-cancel" onclick="closeSpotPopup()">다른 스팟 고르기</button>
-      <button class="spot-popup-btn-go" onclick="confirmSpotSelect()">스팟 선택 →</button>
+      <button class="spot-popup-btn-cancel" onclick="closeSpotPopup()" style="flex:1;">다른 스팟 고르기</button>
+      <button class="spot-popup-btn-go" onclick="confirmSpotSelect()" style="flex:1;">스팟 선택 →</button>
     </div>
   </div>
 </div>
