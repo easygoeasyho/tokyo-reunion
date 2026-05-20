@@ -1085,7 +1085,7 @@ function setNearestTarget(){
         S.shownProx={r100:false,r50:false}; S.proximityState='far';
       }
       S.targetSpot=selected;
-      document.getElementById('compass-spot-name').textContent=`${selected.emoji} ${selected.name}`;
+      var csnEl2=document.getElementById('compass-spot-name'); if(csnEl2) csnEl2.textContent=selected.emoji+' '+selected.name;
       document.getElementById('hint-text').textContent=selected.hint||'힌트가 등록되어 있지 않아요.';
       return;
     }
@@ -1100,7 +1100,7 @@ function setNearestTarget(){
   if(nearest!==S.targetSpot){S.shownProx={r100:false,r50:false};S.proximityState='far';}
   S.targetSpot=nearest;
   if(nearest){
-    document.getElementById('compass-spot-name').textContent=`${nearest.emoji} ${nearest.name}`;
+    var csnEl3=document.getElementById('compass-spot-name'); if(csnEl3) csnEl3.textContent=nearest.emoji+' '+nearest.name;
     document.getElementById('hint-text').textContent=nearest.hint||'힌트가 등록되어 있지 않아요.';
   }
 }
@@ -1546,7 +1546,7 @@ function selectSpotAndHunt(spotId){
   startGeolocation();
   startCompass();
   // 나침반 즉시 해당 스팟으로 설정
-  document.getElementById('compass-spot-name').textContent = `${spot.emoji} ${spot.name}`;
+  var csnEl = document.getElementById('compass-spot-name'); if(csnEl) csnEl.textContent = spot.emoji+' '+spot.name;
   if(spot.hint){
     var htOld = document.getElementById('hint-text');
     var htNew = document.getElementById('hint-text-new');
