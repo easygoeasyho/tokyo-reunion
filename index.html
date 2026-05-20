@@ -350,7 +350,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 
 /* ── 선물 수령 리본 ── */
 .comment-card-wrap{position:relative;overflow:hidden;}
-.gift-ribbon{position:absolute;top:10px;right:-22px;background:linear-gradient(135deg,#FF6B35,#FFB347);color:#fff;font-size:9px;font-weight:700;padding:4px 28px;transform:rotate(45deg);white-space:nowrap;box-shadow:0 2px 6px rgba(255,107,53,0.35);}
+.gift-ribbon{position:absolute;top:14px;right:-26px;background:linear-gradient(135deg,#3A6FD8,#5B8DEF);color:#fff;font-size:9px;font-weight:700;padding:5px 32px;transform:rotate(45deg);white-space:nowrap;box-shadow:0 2px 8px rgba(58,111,216,0.4);text-align:center;letter-spacing:0.5px;}
 
 /* ── Confetti 애니메이션 ── */
 .confetti-wrap{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9990;overflow:hidden;}
@@ -372,6 +372,40 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
     --border:rgba(26,26,46,0.12);
   }
 }
+
+/* ── 스팟 갤러리 ── */
+.spot-gallery-wrap{position:relative;overflow:hidden;}
+.spot-gallery{display:flex;gap:12px;overflow-x:auto;padding:4px 4px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;scroll-snap-type:x mandatory;}
+.spot-gallery::-webkit-scrollbar{display:none;}
+.spot-gallery-fade-r{position:absolute;right:0;top:0;bottom:12px;width:48px;background:linear-gradient(to left,rgba(247,248,252,0.95),transparent);pointer-events:none;border-radius:0 var(--rsm) var(--rsm) 0;}
+.spot-gallery-fade-l{position:absolute;left:0;top:0;bottom:12px;width:48px;background:linear-gradient(to right,rgba(247,248,252,0.95),transparent);pointer-events:none;display:none;}
+
+/* ── 갤러리 카드 ── */
+.sg-card{flex-shrink:0;width:160px;border-radius:14px;background:#fff;border:1.5px solid var(--border);padding:14px 12px;cursor:pointer;scroll-snap-align:start;transition:all .2s;position:relative;overflow:hidden;}
+.sg-card:active{transform:scale(0.97);}
+.sg-card.visited{background:linear-gradient(135deg,#EEF3FF,#F7F9FF);border-color:var(--blue);}
+.sg-card-emoji{font-size:28px;margin-bottom:6px;}
+.sg-card-num{font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.5px;margin-bottom:2px;}
+.sg-card-name{font-size:13px;font-weight:900;color:var(--ink);font-family:'Black Han Sans',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
+.sg-card-dist{font-size:10px;color:var(--ink-lt);margin-bottom:4px;}
+.sg-card-gift{font-size:10px;color:#34C759;font-weight:700;}
+.sg-card-gift.empty{color:#FF3B30;}
+.sg-card-visited-badge{font-size:9px;font-weight:700;color:#fff;background:linear-gradient(135deg,#3A6FD8,#5B8DEF);padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:4px;}
+.sg-card-review-link{font-size:10px;color:var(--blue);text-decoration:underline;margin-top:2px;}
+
+/* ── 스팟 상세 팝업 ── */
+.spot-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:800;display:flex;align-items:flex-end;justify-content:center;}
+.spot-popup-overlay.hidden{display:none;}
+.spot-popup-box{background:#fff;border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;animation:slideUp .25s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.spot-popup-handle{width:36px;height:4px;background:#DDDDDD;border-radius:2px;margin:0 auto 16px;}
+.spot-popup-emoji{font-size:36px;margin-bottom:6px;}
+.spot-popup-name{font-size:20px;font-weight:900;font-family:'Black Han Sans',sans-serif;color:var(--ink);margin-bottom:12px;}
+.spot-popup-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-mid);margin-bottom:8px;}
+.spot-popup-row b{color:var(--ink);}
+.spot-popup-btns{display:flex;gap:10px;margin-top:18px;}
+.spot-popup-btn-cancel{flex:1;padding:13px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rsm);font-size:14px;font-weight:700;color:var(--ink-mid);font-family:'Noto Sans KR',sans-serif;cursor:pointer;}
+.spot-popup-btn-go{flex:2;padding:13px;background:var(--blue);border:none;border-radius:var(--rsm);font-size:14px;font-weight:700;color:#fff;font-family:'Noto Sans KR',sans-serif;cursor:pointer;}
 </style>
 
 <!-- Firebase SDK -->
@@ -439,26 +473,27 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
   </div>
 
   <div class="intro-form">
-    <!-- 닉네임 + 학교명 + 수정버튼 묶음 -->
-    <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 14px;position:relative;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
-        <div style="flex:1;">
-          <div style="margin-bottom:10px;">
-            <div class="field-label" style="margin-bottom:5px;">🙋 닉네임 <span class="req">필수</span></div>
-            <input class="field-input" id="nickname-input" type="text" placeholder="예: 이지현, 토끼토끼 ..." maxlength="12" autocomplete="off">
-          </div>
-          <div>
-            <div class="field-label" style="margin-bottom:5px;">🏫 학교명 <span class="opt">선택</span></div>
-            <input class="field-input" id="school-input" type="text" placeholder="예: 도쿄, 메이지, 리츠메이칸..." maxlength="20" autocomplete="off">
-          </div>
-        </div>
-        <button id="nick-edit-btn" onclick="toggleNickEdit()" style="display:none;flex-shrink:0;background:#fff;border:1.5px solid var(--blue);border-radius:var(--rsm);padding:8px 14px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;margin-top:2px;">✏️ 수정</button>
+    <!-- 닉네임 + 학교명 묶음 -->
+    <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 14px;">
+      <div style="margin-bottom:10px;">
+        <div class="field-label" style="margin-bottom:5px;">🙋 닉네임 <span class="req">필수</span></div>
+        <input class="field-input" id="nickname-input" type="text" placeholder="예: 이지현, 토끼토끼 ..." maxlength="12" autocomplete="off">
       </div>
+      <div>
+        <div class="field-label" style="margin-bottom:5px;">🏫 학교명 <span class="opt">선택</span></div>
+        <input class="field-input" id="school-input" type="text" placeholder="예: 도쿄, 메이지, 리츠메이칸..." maxlength="20" autocomplete="off">
+      </div>
+      <!-- 수정 버튼: 두 입력란 아래 -->
+      <button id="nick-edit-btn" onclick="toggleNickEdit()" style="display:none;margin-top:10px;width:100%;background:#fff;border:1.5px solid var(--blue);border-radius:var(--rsm);padding:9px;font-size:13px;font-weight:700;color:var(--blue);font-family:'Noto Sans KR',sans-serif;cursor:pointer;">✏️ 닉네임 · 학교명 수정</button>
     </div>
     <div>
-      <div class="field-label">📍 스팟 현황</div>
-      <div class="spots-status" id="spots-status-wrap">
-        <div style="font-size:12px;color:var(--ink-lt);">스팟 정보를 불러오는 중...</div>
+      <div class="field-label">🗺️ 동창회 스팟 선택하기</div>
+      <div class="spot-gallery-wrap">
+        <div class="spot-gallery" id="spot-gallery" onscroll="onGalleryScroll()">
+          <div style="font-size:12px;color:var(--ink-lt);padding:20px 0;">스팟 정보를 불러오는 중...</div>
+        </div>
+        <div class="spot-gallery-fade-r" id="gallery-fade-r"></div>
+        <div class="spot-gallery-fade-l" id="gallery-fade-l"></div>
       </div>
     </div>
     <div>
@@ -468,15 +503,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
         <b>🧭 나침반 화살표</b>가 가리키는 방향으로 이동하세요.<br>
         <b>🟠 주황 화면</b> = 500m 이내, <b>🔴 빨간 화면</b> = 100m 이내!<br>
         지도에 핀은 표시되지 않으니 나침반을 믿고 이동하세요. 모르면 💡힌트!<br>
-        <b>⚠️ 유의:</b> 이동 시 안전에 주의하고, 교통법규를 준수하세요.
+        <b>⚠️ 유의:</b> 이동 시 안전에 주의하고, 교통법규를 준수하세요.<br><br>
+        <b>💾 닉네임과 학교명</b>은 이 기기에 자동 저장돼요.<br>
+        재접속하거나 새로고침해도 그대로 이어서 사용할 수 있어요.<br>
+        수정하고 싶으시면 입력란을 변경 후 시작하세요.
       </div>
     </div>
-    <div style="background:var(--blue-lt);border-left:3px solid var(--blue);border-radius:var(--rsm);padding:10px 14px;font-size:12px;color:var(--ink-mid);line-height:1.7;">
-      💾 닉네임과 학교명은 이 기기에 자동 저장돼요.<br>
-      재접속하거나 새로고침해도 그대로 이어서 사용할 수 있어요.<br>
-      수정하고 싶으시면 입력란을 변경 후 시작하세요.
-    </div>
-    <button class="btn-primary" onclick="startHunt()">🎁 선물 찾기 시작!</button>
+    
   </div>
 </div>
 
@@ -541,7 +574,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
   <div style="width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
     <div class="arrival-card">
       <!-- 상단: 뒤로가기 버튼 -->
-      <div id="arrival-nav" style="display:none;width:100%;padding:2px 0 8px;">
+      <div id="arrival-nav" style="display:block;width:100%;padding:2px 0 8px;">
         <button onclick="backToSpotSelect()" style="background:none;border:none;padding:4px 0;cursor:pointer;font-size:15px;color:#9A9AAA;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;gap:4px;">
           ← 스팟 목록으로
         </button>
@@ -646,6 +679,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
       <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">지도 탭 → 자동입력 · 숫자 직접 입력도 가능</div>
       <div class="field-sub-label">📏 도착 인정 반경 (기본 30m · 실내는 10~15m 권장)</div>
       <input class="admin-input" id="spot-radius" type="number" value="30" style="width:100%;margin-bottom:4px;">
+      <div class="field-sub-label">🚉 가까운 역 <span style="font-weight:400;color:var(--ink-lt)">(예: 新宿駅, 渋谷駅 — 스팟 선택 팝업에 표시됩니다)</span></div>
+      <input class="admin-input" id="spot-station" placeholder="예: 巣鴨駅 北口" style="width:100%;margin-bottom:4px;">
       <div class="field-sub-label">💡 힌트 문구 <span style="font-weight:400;color:var(--ink-lt)">(참여자가 선택적으로 볼 수 있어요)</span></div>
       <textarea class="admin-textarea" id="spot-hint" placeholder="예: 신주쿠역 동쪽 출구 도보 3분, 빨간 노렌이 걸린 라멘집이에요!" rows="2"></textarea>
       <div class="field-sub-label">💬 선생님의 응원 메시지</div>
@@ -899,6 +934,19 @@ async function loadSpots(){
   }catch(e){ console.error('loadSpots err',e); }
 }
 
+
+function toggleSpotStatus(){
+  var wrap = document.getElementById('spots-status-wrap');
+  var icon = document.getElementById('spot-status-toggle-icon');
+  if(!wrap) return;
+  if(wrap.style.display === 'none'){
+    wrap.style.display = 'block';
+    icon.textContent = '▲ 접기';
+  } else {
+    wrap.style.display = 'none';
+    icon.textContent = '▼ 펼치기';
+  }
+}
 // ════════════════════════════════════════════
 // SCREENS
 // ════════════════════════════════════════════
@@ -949,17 +997,16 @@ function initPetals(){
 // START HUNT
 // ════════════════════════════════════════════
 function startHunt(){
+  // startHunt는 이제 사용 안 함 (갤러리에서 직접 선택)
+  // 혹시 버튼이 눌릴 경우를 위해 닉네임 체크만
   const nick=document.getElementById('nickname-input').value.trim();
   if(!nick){showToast('닉네임을 입력해주세요 😊');return;}
   S.nickname=nick;
   const schoolVal=document.getElementById('school-input').value.trim();
   S.school=schoolVal||'미기입';
-  // 닉네임/학교 localStorage에 저장 (새로고침해도 유지)
   localStorage.setItem('arNickname', S.nickname);
   localStorage.setItem('arSchool', S.school);
-  // 스팟 선택 화면으로 이동
-  renderSpotSelectScreen();
-  showScreen('spotselect');
+  showToast('스팟을 선택해주세요!');
 }
 
 // ════════════════════════════════════════════
@@ -1350,8 +1397,9 @@ function backToSpotSelect(){
   localStorage.removeItem('arScreen');
   if(S.watchId){ navigator.geolocation.clearWatch(S.watchId); S.watchId=null; }
   if(S.map){ S.map.remove(); S.map=null; S.userMarker=null; }
-  renderSpotSelectScreen();
-  showScreen('spotselect');
+  // 스팟 선택 화면 대신 홈화면으로
+  renderSpotGallery();
+  showScreen('intro');
 }
 
 
@@ -1365,8 +1413,8 @@ function goToHome(){
   S.selectedSpotId=null;
   localStorage.removeItem('arSelectedSpot');
   localStorage.removeItem('arScreen');
+  renderSpotGallery();
   showScreen('intro');
-  // 저장된 닉네임 있으면 비활성화 모드로 표시
   applyNickSavedMode();
 }
 
@@ -1891,6 +1939,194 @@ function launchConfetti(){
   setTimeout(function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 4000);
 }
 
+
+// ════════════════════════════════════════════
+// 스팟 갤러리 (홈화면)
+// ════════════════════════════════════════════
+
+// 갤러리 렌더링
+function renderSpotGallery(){
+  var gallery = document.getElementById('spot-gallery');
+  if(!gallery) return;
+  gallery.innerHTML = '';
+
+  if(!S.spots.length){
+    gallery.innerHTML = '<div style="font-size:12px;color:var(--ink-lt);padding:20px 0;">등록된 스팟이 없습니다.</div>';
+    return;
+  }
+
+  S.spots.forEach(function(sp, i){
+    var fp = S.userFp || localStorage.getItem('arUserFp') || '';
+    var claimKey = 'arClaimed_'+fp+'_'+sp.id;
+    var isVisited = !!localStorage.getItem(claimKey);
+    var savedCode = localStorage.getItem(claimKey);
+
+    var card = document.createElement('div');
+    card.className = 'sg-card' + (isVisited?' visited':'');
+
+    // 이모지
+    var emojiEl = document.createElement('div');
+    emojiEl.className = 'sg-card-emoji';
+    emojiEl.textContent = sp.emoji||'📍';
+    card.appendChild(emojiEl);
+
+    // 스팟 번호
+    var numEl = document.createElement('div');
+    numEl.className = 'sg-card-num';
+    numEl.textContent = '스팟 '+(i+1);
+    card.appendChild(numEl);
+
+    // 스팟 이름
+    var nameEl = document.createElement('div');
+    nameEl.className = 'sg-card-name';
+    nameEl.textContent = sp.name;
+    card.appendChild(nameEl);
+
+    if(isVisited){
+      // 방문 완료 카드
+      var badge = document.createElement('div');
+      badge.className = 'sg-card-visited-badge';
+      // 몇 번째 방문자인지
+      var order = getMyVisitOrder(sp.id, fp);
+      badge.textContent = order ? order+'번째 방문자 🎉' : '방문 완료 ✅';
+      card.appendChild(badge);
+
+      var reviewLink = document.createElement('div');
+      reviewLink.className = 'sg-card-review-link';
+      reviewLink.textContent = '💬 댓글 & 랭킹 보기 →';
+      card.appendChild(reviewLink);
+
+      card.addEventListener('click', (function(sid){ return function(){ reviewCompletedSpot(sid); }; })(sp.id));
+    } else {
+      // 미방문 카드
+      // 거리
+      var distEl = document.createElement('div');
+      distEl.className = 'sg-card-dist';
+      distEl.id = 'gallery-dist-'+sp.id;
+      if(S.userPos){
+        var d = haversine(S.userPos.lat, S.userPos.lng, sp.lat, sp.lng);
+        distEl.textContent = '📍 '+(d<1000?Math.round(d)+'m':(d/1000).toFixed(1)+'km');
+      } else {
+        distEl.textContent = '📍 위치 확인 중...';
+      }
+      card.appendChild(distEl);
+
+      // 쿠폰 잔여
+      var totalCodes = (sp.gift&&sp.gift.codes) ? sp.gift.codes.length : 0;
+      if(totalCodes > 0){
+        var claimed = S.giftClaims[sp.id]||0;
+        var rem = Math.max(0, totalCodes-claimed);
+        var giftEl = document.createElement('div');
+        giftEl.className = 'sg-card-gift'+(rem===0?' empty':'');
+        giftEl.textContent = rem===0 ? '🎁 선물 소진' : '🎁 선물 '+rem+'개 남음';
+        card.appendChild(giftEl);
+      }
+
+      card.addEventListener('click', (function(sp){ return function(){ openSpotPopup(sp); }; })(sp));
+    }
+
+    gallery.appendChild(card);
+  });
+
+  onGalleryScroll();
+}
+
+// 내가 몇 번째 방문자인지
+function getMyVisitOrder(spotId, fp){
+  var arr = S.comments[spotId]||[];
+  var nick = S.nickname || localStorage.getItem('arNickname')||'';
+  for(var i=0;i<arr.length;i++){
+    if(arr[i].nick===nick) return i+1;
+  }
+  return null;
+}
+
+// 갤러리 스크롤 페이드
+function onGalleryScroll(){
+  var g = document.getElementById('spot-gallery');
+  var fr = document.getElementById('gallery-fade-r');
+  var fl = document.getElementById('gallery-fade-l');
+  if(!g||!fr||!fl) return;
+  var atEnd = g.scrollLeft+g.clientWidth >= g.scrollWidth-8;
+  var atStart = g.scrollLeft <= 8;
+  fr.style.display = atEnd?'none':'block';
+  fl.style.display = atStart?'none':'block';
+}
+
+// GPS 업데이트 시 갤러리 거리 갱신
+function updateGalleryDists(){
+  if(!S.userPos) return;
+  S.spots.forEach(function(sp){
+    var el = document.getElementById('gallery-dist-'+sp.id);
+    if(!el) return;
+    var d = haversine(S.userPos.lat, S.userPos.lng, sp.lat, sp.lng);
+    el.textContent = '📍 '+(d<1000?Math.round(d)+'m':(d/1000).toFixed(1)+'km');
+  });
+}
+
+// ── 스팟 상세 팝업 ──
+var _popupSpot = null;
+
+function openSpotPopup(sp){
+  _popupSpot = sp;
+  document.getElementById('popup-emoji').textContent = sp.emoji||'📍';
+  document.getElementById('popup-name').textContent = sp.name;
+
+  // 거리
+  var distEl = document.getElementById('popup-dist');
+  if(S.userPos){
+    var d = haversine(S.userPos.lat, S.userPos.lng, sp.lat, sp.lng);
+    distEl.textContent = '내 장소로부터 '+(d<1000?Math.round(d)+'m':(d/1000).toFixed(1)+'km');
+  } else {
+    distEl.textContent = '위치 확인 중...';
+  }
+
+  // 가까운 역
+  var stRow = document.getElementById('popup-station-row');
+  var stEl = document.getElementById('popup-station');
+  if(sp.nearStation){
+    stEl.textContent = sp.nearStation;
+    stRow.style.display = 'flex';
+  } else {
+    stRow.style.display = 'none';
+  }
+
+  // 힌트
+  var hintRow = document.getElementById('popup-hint-row');
+  var hintEl = document.getElementById('popup-hint');
+  if(sp.hint){
+    hintEl.textContent = sp.hint;
+    hintRow.style.display = 'flex';
+  } else {
+    hintRow.style.display = 'none';
+  }
+
+  // 방문자 수 (댓글 수 기준)
+  var visitors = (S.comments[sp.id]||[]).length;
+  document.getElementById('popup-visitors').textContent = visitors;
+
+  document.getElementById('spot-popup').classList.remove('hidden');
+}
+
+function closeSpotPopup(){
+  document.getElementById('spot-popup').classList.add('hidden');
+  _popupSpot = null;
+}
+
+function confirmSpotSelect(){
+  if(!_popupSpot) return;
+  closeSpotPopup();
+  // 닉네임 확인
+  var nick = document.getElementById('nickname-input').value.trim();
+  if(!nick){ showToast('닉네임을 먼저 입력해주세요 😊'); return; }
+  S.nickname = nick;
+  var schoolVal = document.getElementById('school-input').value.trim();
+  S.school = schoolVal||'미기입';
+  localStorage.setItem('arNickname', S.nickname);
+  localStorage.setItem('arSchool', S.school);
+  selectSpotAndHunt(_popupSpot.id);
+}
+
 // ════════════════════════════════════════════
 // ARRIVAL SCREEN
 // ════════════════════════════════════════════
@@ -2098,6 +2334,8 @@ async function updateSpot(){
     emoji:document.getElementById('spot-emoji').value.trim()||existingSpot.emoji||'📍',
     lat,lng,
     radius:parseInt(document.getElementById('spot-radius').value)||30,
+    nearStation:document.getElementById('spot-station').value.trim(),
+    nearStation:document.getElementById('spot-station').value.trim(),
     msgTitle:document.getElementById('spot-msg-title').value.trim()||'선생님 응원 메시지',
     hint:document.getElementById('spot-hint').value.trim(),
     message:document.getElementById('spot-msg').value.trim(),
@@ -2153,6 +2391,8 @@ async function updateSpot(){
     emoji:document.getElementById('spot-emoji').value.trim()||'📍',
     lat,lng,
     radius:parseInt(document.getElementById('spot-radius').value)||30,
+    nearStation:document.getElementById('spot-station').value.trim(),
+    nearStation:document.getElementById('spot-station').value.trim(),
     msgTitle:document.getElementById('spot-msg-title').value.trim()||'선생님 응원 메시지',
     hint:document.getElementById('spot-hint').value.trim(),
     message:document.getElementById('spot-msg').value.trim(),
@@ -2177,7 +2417,7 @@ async function updateSpot(){
       S.adminMapMarkers[spot.id] = m;
     }
     // 폼 초기화
-    ['spot-name','spot-msg','spot-video','spot-hint','spot-msg-title','gift-store-input','gift-item-input','spot-secret-code','spot-secret-hint']
+    ['spot-name','spot-msg','spot-video','spot-hint','spot-station','spot-msg-title','gift-store-input','gift-item-input','spot-secret-code','spot-secret-hint']
       .forEach(fid=>{ const el=document.getElementById(fid); if(el) el.value=''; });
     document.getElementById('spot-lat').value='';document.getElementById('spot-lng').value='';
     document.getElementById('spot-radius').value='30';document.getElementById('spot-emoji').value='';
@@ -2238,6 +2478,7 @@ function startEditSpot(id){
   document.getElementById('spot-radius').value = spot.radius||30;
 
   // ── 메시지 제목·힌트·메시지·영상 ──
+  document.getElementById('spot-station').value  = spot.nearStation||'';
   document.getElementById('spot-msg-title').value = spot.msgTitle||'';
   document.getElementById('spot-hint').value       = spot.hint||'';
   document.getElementById('spot-msg').value        = spot.message||'';
@@ -2490,7 +2731,10 @@ if(savedNick){
   document.getElementById('hunt-school-label').textContent =
     (S.school&&S.school!=='미기입') ? '🏫 '+S.school : '보물을 향해 출발! 🚶';
   // 비활성화 모드 적용 (setTimeout으로 DOM 준비 후)
-  setTimeout(applyNickSavedMode, 100);
+  setTimeout(function(){
+    applyNickSavedMode();
+    renderSpotGallery();
+  }, 100);
 }
 
 // Firebase 준비되면 스팟 로드
@@ -2528,6 +2772,23 @@ waitFirebase(()=>{
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button class="modal-btn cancel" style="flex:1;" onclick="proceedAnyway()">그래도 계속하기</button>
       <button class="modal-btn primary" style="flex:1;" onclick="closeDupModal()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 스팟 상세 팝업 ════ -->
+<div class="spot-popup-overlay hidden" id="spot-popup">
+  <div class="spot-popup-box">
+    <div class="spot-popup-handle"></div>
+    <div class="spot-popup-emoji" id="popup-emoji">📍</div>
+    <div class="spot-popup-name" id="popup-name">스팟 이름</div>
+    <div class="spot-popup-row">📍 <span id="popup-dist">위치 확인 중...</span></div>
+    <div class="spot-popup-row" id="popup-station-row" style="display:none;">🚉 <b id="popup-station"></b></div>
+    <div class="spot-popup-row" id="popup-hint-row" style="display:none;">💡 <span id="popup-hint"></span></div>
+    <div class="spot-popup-row">👣 지금까지 <b id="popup-visitors">0</b>명이 다녀갔어요.</div>
+    <div class="spot-popup-btns">
+      <button class="spot-popup-btn-cancel" onclick="closeSpotPopup()">다른 스팟 고르기</button>
+      <button class="spot-popup-btn-go" onclick="confirmSpotSelect()">스팟 선택 →</button>
     </div>
   </div>
 </div>
