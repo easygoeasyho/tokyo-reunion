@@ -2352,6 +2352,7 @@ function confirmSpotSelect(){
 // ARRIVAL SCREEN
 // ════════════════════════════════════════════
 async function showArrivalScreen(spot){
+  // ── 기본 정보 설정 ──
   document.getElementById('arrival-emoji').textContent=spot.emoji||'🎉';
   document.getElementById('arrival-spot-name').textContent=spot.name;
   document.getElementById('teacher-name-label').textContent=spot.teacherName||'선생님';
@@ -2361,71 +2362,70 @@ async function showArrivalScreen(spot){
   const vb=document.getElementById('video-btn');
   vb.style.display=spot.videoUrl?'flex':'none'; vb._url=spot.videoUrl;
 
-  const codes=spot.gift?.codes||[];
+  const imgEl=document.getElementById('gift-img');
+  if(spot.gift?.imgBase64){ imgEl.src=spot.gift.imgBase64; imgEl.style.display='block'; }
+  else imgEl.style.display='none';
+
+  // 선물란 초기화 (로딩 상태)
   const numEl=document.getElementById('gift-num');
   const codeRow=document.getElementById('gift-code-row');
   const codeEl=document.getElementById('gift-code');
   const exhEl=document.getElementById('gift-exhausted');
-  const imgEl=document.getElementById('gift-img');
+  numEl.style.display='none';
+  codeRow.style.display='none';
+  exhEl.style.display='none';
 
-  if(!codes.length){
-    numEl.style.display='none'; codeRow.style.display='none'; exhEl.style.display='none';
-  } else {
-    // Firebase 트랜잭션으로 선착순 코드 발급
-    showToast('🎁 선물 확인 중...');
-    try{
-      const myCode = await fbClaimGiftCode(spot.id, codes);
-      if(myCode === '__already_claimed__'){
-        // 이미 수령한 경우 — 로컬에 저장된 코드 보여주기
-        const savedCode = localStorage.getItem(`arClaimed_${S.userFp}_${spot.id}`);
-        numEl.style.display='block';
-        numEl.textContent='🔄 이미 수령한 선물입니다';
-        if(savedCode){
-          codeRow.style.display='flex';
-          codeRow.style.visibility='visible';
-          codeEl.textContent=savedCode;
-          codeEl.style.display='block';
-          document.getElementById('copy-btn').style.display='flex';
-          exhEl.style.display='none';
-          resetCopyBtn();
-        } else {
-          codeRow.style.display='none';
-          exhEl.textContent='이미 선물을 수령하셨습니다. 동일 기기에서 재확인하려면 처음 수령한 기기를 이용해주세요.';
-          exhEl.style.display='block';
-        }
-      } else if(myCode){
-        const claimed = await fbGetClaimedCount(spot.id);
-        numEl.style.display='block';
-        numEl.textContent=`🎟️ ${claimed}번째 선물 (전체 ${codes.length}개 중 선착순)`;
-        codeRow.style.display='flex';
-        codeRow.style.visibility='visible';
-        codeEl.textContent=myCode;
-        codeEl.style.display='block';
-        document.getElementById('copy-btn').style.display='flex';
-        exhEl.style.display='none';
-        resetCopyBtn();
-      } else {
-        numEl.style.display='none'; codeRow.style.display='none'; exhEl.style.display='block';
-      }
-    }catch(e){
-      console.error('gift claim err',e);
-      numEl.style.display='none'; codeRow.style.display='none'; exhEl.style.display='none';
-    }
-    renderSpotStatus(); // 잔량 업데이트
-  }
-
-  if(spot.gift?.imgBase64){ imgEl.src=spot.gift.imgBase64; imgEl.style.display='block'; }
-  else imgEl.style.display='none';
-
+  // ── 화면 먼저 전환 (Firebase 응답 전에) ──
   S._currentSpot=spot;
   S._commentTargetSpotId=spot.id;
   S.filterSpotId=spot.id;
   showScreen('arrival');
-  // 댓글 먼저 구독 시작 → 데이터 오면 자동 갱신
   listenComments(spot.id);
-  // 필터탭 + 탭 전환
   renderSpotFilterTabs();
   switchTab('comment');
+
+  // ── 선물 처리 (화면 전환 후 비동기로) ──
+  const codes=spot.gift?.codes||[];
+  if(!codes.length) return;
+
+  showToast('🎁 선물 확인 중...');
+  try{
+    const myCode = await fbClaimGiftCode(spot.id, codes);
+    if(myCode === '__already_claimed__'){
+      const savedCode = localStorage.getItem('arClaimed_'+S.userFp+'_'+spot.id);
+      numEl.style.display='block';
+      numEl.textContent='🔄 이미 수령한 선물입니다';
+      if(savedCode){
+        codeRow.style.display='flex';
+        codeEl.textContent=savedCode;
+        exhEl.style.display='none';
+        resetCopyBtn();
+      } else {
+        codeRow.style.display='none';
+        exhEl.textContent='이미 선물을 수령하셨습니다.';
+        exhEl.style.display='block';
+      }
+    } else if(myCode){
+      const claimed = await fbGetClaimedCount(spot.id);
+      numEl.style.display='block';
+      numEl.textContent='🎟️ '+claimed+'번째 선물 (전체 '+codes.length+'개 중 선착순)';
+      codeRow.style.display='flex';
+      codeEl.textContent=myCode;
+      exhEl.style.display='none';
+      resetCopyBtn();
+    } else {
+      // 선물 소진
+      numEl.style.display='none';
+      codeRow.style.display='none';
+      exhEl.style.display='block';
+    }
+  } catch(e){
+    console.error('gift claim err', e);
+    exhEl.textContent='선물 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    exhEl.style.display='block';
+  }
+  try{ renderSpotStatus(); } catch(e){}
+  try{ await loadSpots(); } catch(e){}
 }
 function openVideoLink(){ const u=document.getElementById('video-btn')._url; if(u)window.open(u,'_blank'); }
 
