@@ -1173,7 +1173,11 @@ function setNearestTarget(){
     const d=S.userPos?haversine(S.userPos.lat,S.userPos.lng,spot.lat,spot.lng):Infinity;
     if(d<minD){minD=d;nearest=spot;}
   });
-  if(nearest!==S.targetSpot){S.shownProx={r100:false,r50:false};S.proximityState='far';}
+  if(nearest!==S.targetSpot){
+    S.shownProx={r100:false,r50:false};
+    S.proximityState='far';
+    S._startDist=null;  // 진행바 리셋
+  }
   S.targetSpot=nearest;
   if(nearest){
     var csnEl3=document.getElementById('compass-spot-name'); if(csnEl3) csnEl3.textContent=nearest.emoji+' '+nearest.name;
@@ -1198,23 +1202,24 @@ function updateProximity(){
   const bar = document.getElementById('dist-progress-bar');
   if(bar) bar.style.width = pct + '%';
   updateCompassBearing();
-  if(dist<=S.targetSpot.radius){
+  const gpsMargin = Math.max(30, S.accuracy||30);  // GPS 정확도 여유값 (최소 30m)
+  if(dist <= S.targetSpot.radius + gpsMargin){
     if(S.proximityState!=='arrived'){S.proximityState='arrived';pill.className='hunt-dist-pill hot';triggerArrival();}
     return;
   }
-  if(dist<50){
+  if(dist<50+gpsMargin){
     if(!S.shownProx.r50){S.shownProx.r50=true;S.proximityState='hot';
       pill.className='hunt-dist-pill hot';overlay.className='prox-overlay hot';
       showProxPopup('🔥','50m 안에 들어왔어요!','거의 다 왔습니다! 조금만 더!');
       vibrate([100,50,100,50,200]);}return;
   }
-  if(dist<100){
+  if(dist<100+gpsMargin){
     if(!S.shownProx.r100){S.shownProx.r100=true;S.proximityState='warm';
       pill.className='hunt-dist-pill warm';overlay.className='prox-overlay warm';
       showProxPopup('🟠','동창회 스팟에 거의 근접했어요!','100m 이내에 스팟이 있어요!');
       vibrate([100,50,100]);}return;
   }
-  if(dist<500){
+  if(dist<500+gpsMargin){
     if(S.proximityState!=='warm'&&S.proximityState!=='hot'){
       S.proximityState='warmfar';pill.className='hunt-dist-pill warm';overlay.className='prox-overlay warm';}
     return;
@@ -1641,6 +1646,9 @@ function selectSpotAndHunt(spotId){
   if(!spot){ showToast('스팟을 찾을 수 없어요.'); return; }
   S.selectedSpotId = spotId;
   S.targetSpot = spot;
+  S.shownProx = {r100:false, r50:false};
+  S.proximityState = 'far';
+  S._startDist = null;
   // 진행 상태 저장 (새로고침 복귀용)
   localStorage.setItem('arSelectedSpot', spotId);
   localStorage.setItem('arScreen', 'hunt');
