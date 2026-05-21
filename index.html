@@ -911,6 +911,7 @@ function fbListenComments(spotId, callback){
 // ════════════════════════════════════════════
 async function renderSpotStatus(){
   const wrap=document.getElementById('spots-status-wrap');
+  if(!wrap) return;  // 요소 없으면 조용히 종료
   if(!S.spots.length){wrap.innerHTML='<div style="font-size:12px;color:var(--ink-lt);">현재 등록된 스팟이 없습니다.</div>';return;}
   // 각 스팟 claimed 수 병렬 조회
   const counts = await Promise.all(S.spots.map(sp=> fbReady() ? fbGetClaimedCount(sp.id) : Promise.resolve(0)));
@@ -1060,7 +1061,7 @@ function initHuntMap(){
 
 
 
-  setNearestTarget();
+  try{ setNearestTarget(); } catch(e){ console.warn('setNearestTarget err:', e); }
   // 지도 크기 강제 갱신 (숨겨진 상태에서 초기화 후 보정)
   setTimeout(function(){ if(S.map) S.map.invalidateSize(); }, 200);
 }
@@ -1162,7 +1163,7 @@ function setNearestTarget(){
       }
       S.targetSpot=selected;
       var csnEl2=document.getElementById('compass-spot-name'); if(csnEl2) csnEl2.textContent=selected.emoji+' '+selected.name;
-      document.getElementById('hint-text').textContent=selected.hint||'힌트가 등록되어 있지 않아요.';
+      { var _ht=document.getElementById('hint-text'); if(_ht) _ht.textContent=selected.hint||'힌트가 등록되어 있지 않아요.'; }
       return;
     }
   }
@@ -1181,7 +1182,7 @@ function setNearestTarget(){
   S.targetSpot=nearest;
   if(nearest){
     var csnEl3=document.getElementById('compass-spot-name'); if(csnEl3) csnEl3.textContent=nearest.emoji+' '+nearest.name;
-    document.getElementById('hint-text').textContent=nearest.hint||'힌트가 등록되어 있지 않아요.';
+    { var _ht=document.getElementById('hint-text'); if(_ht) _ht.textContent=nearest.hint||'힌트가 등록되어 있지 않아요.'; }
   }
 }
 
@@ -1191,9 +1192,10 @@ function setNearestTarget(){
 function updateProximity(){
   if(!S.targetSpot||!S.userPos)return;
   const dist=haversine(S.userPos.lat,S.userPos.lng,S.targetSpot.lat,S.targetSpot.lng);
-  const dTxt=dist<1000?`${Math.round(dist)}m`:`${(dist/1000).toFixed(1)}km`;
   const pill=document.getElementById('dist-pill');
   const overlay=document.getElementById('prox-overlay');
+  if(!pill||!overlay) return;  // 헌트 화면이 아닐 때
+  const dTxt=dist<1000?`${Math.round(dist)}m`:`${(dist/1000).toFixed(1)}km`;
   pill.textContent=`📍 ${dTxt} 남음`;
   // 진행 바 업데이트 (최대 거리 1000m 기준)
   const maxDist = S._startDist || Math.max(dist, 100);
