@@ -1228,8 +1228,8 @@ function updateProximity(){
       if(S.proximityState!=='arrived'){
         S.proximityState='arrived';
         if(pill) pill.className='hunt-dist-pill hot';
-        // S.targetSpot을 선택한 스팟으로 고정 후 triggerArrival
         S.targetSpot = arrivalSpot;
+        console.log('[도착판정] arrivalSpot:', arrivalSpot.name, 'selectedSpotId:', S.selectedSpotId, 'targetSpot:', S.targetSpot.name);
         triggerArrival();
       }
       return;
@@ -1270,7 +1270,8 @@ function triggerArrival(){
   }
   if(!spot) spot = S.targetSpot;
   if(!spot){ showToast('오류: 스팟 정보 없음'); return; }
-  console.log('[triggerArrival] spot:', spot.name, 'selectedSpotId:', S.selectedSpotId, 'targetSpot:', S.targetSpot && S.targetSpot.name);
+  console.log('[triggerArrival] 선택ID:', S.selectedSpotId, '→ spot:', spot.name, '/ targetSpot:', S.targetSpot && S.targetSpot.name);
+  showToast('도착: '+spot.name+' (선택ID:'+S.selectedSpotId+')');
 
   vibrate([200,100,200,100,400]); playArrivalSound(); launchConfetti();
 
