@@ -187,10 +187,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .comment-text{font-size:13px;color:var(--ink);line-height:1.65;}
 .comment-divider{height:1px;background:var(--bg2);margin:0;}
 .comment-notice{font-size:11px;color:var(--ink-mid);background:var(--bg2);border-radius:var(--rsm);border-left:3px solid var(--blue);padding:10px 12px;margin-bottom:10px;line-height:1.7;}
-.comment-input-row{display:flex;gap:8px;align-items:center;padding:12px 16px 20px;border-top:1px solid var(--border);margin-top:8px;background:#fff;position:sticky;bottom:0;}
-.comment-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 14px;font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;background:var(--bg2);}
+.comment-input-row{display:flex;gap:8px;align-items:center;padding:12px 16px 24px;align-items:stretch;border-top:1px solid var(--border);margin-top:8px;background:#fff;position:sticky;bottom:0;}
+.comment-input{flex:1;border:1.5px solid var(--border);border-radius:var(--rsm);padding:14px;font-size:13px;min-height:80px;font-family:'Noto Sans KR',sans-serif;outline:none;background:var(--bg2);}
 .comment-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,111,216,0.1);}
-.comment-submit{padding:11px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rsm);font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.comment-submit{padding:0 16px;min-height:80px;background:var(--blue);color:#fff;border:none;border-radius:var(--rsm);font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 /* 랭킹 */
 .ranking-item{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;}
 .rank-num{font-size:20px;font-weight:900;color:var(--blue);min-width:28px;text-align:center;}
