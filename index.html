@@ -949,21 +949,29 @@ async function loadSpots(){
     }));
     renderSpotStatus();
     renderAdminSpotList();
-    renderSpotGallery();
-    if(S._currentSpot && S.currentScreen==='arrival'){
-      renderSpotFilterTabs();
-    }
-    // 헌트 화면 중이면 헤더 스팟 정보도 갱신
-    if(S.currentScreen==='hunt' && S.targetSpot){
-      var sp = S.targetSpot;
+
+    // 헌트 화면 중이면: selectedSpotId/targetSpot을 새 spots 배열에서 재연결
+    if(S.currentScreen==='hunt'){
+      if(S.selectedSpotId){
+        var relinked = S.spots.find(function(sp){ return sp.id===S.selectedSpotId; });
+        if(relinked) S.targetSpot = relinked;  // 새 배열 객체로 재연결
+      }
+      // 갤러리는 헌트 중 렌더 안 함 (selectedSpotId 방해 방지)
       var giftEl2 = document.getElementById('hunt-spot-gift');
-      if(giftEl2){
-        var tc = (sp.gift&&sp.gift.codes) ? sp.gift.codes.length : 0;
-        var cl = S.giftClaims[sp.id]||0;
+      if(giftEl2 && S.targetSpot){
+        var sp2 = S.targetSpot;
+        var tc = (sp2.gift&&sp2.gift.codes) ? sp2.gift.codes.length : 0;
+        var cl = S.giftClaims[sp2.id]||0;
         var rm = Math.max(0,tc-cl);
-        giftEl2.textContent = tc>0 ? (rm===0?'선물 소진':'잔여 '+rm+'/'+tc+'개') : '';
+        giftEl2.textContent = tc>0 ? (rm===0?'🎟 소진':'🎟 '+rm+'/'+tc) : '';
         giftEl2.style.color = rm===0?'#FF3B30':'#34C759';
       }
+    } else {
+      renderSpotGallery();
+    }
+
+    if(S._currentSpot && S.currentScreen==='arrival'){
+      renderSpotFilterTabs();
     }
   }catch(e){ console.error('loadSpots err',e); }
 }
