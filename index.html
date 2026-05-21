@@ -1238,24 +1238,31 @@ function triggerArrival(){
   vibrate([200,100,200,100,400]); playArrivalSound(); launchConfetti();
   S.arrivedSpots.add(S.targetSpot.id);
   if(S.watchId){ navigator.geolocation.clearWatch(S.watchId); S.watchId=null; }
-  // 도착했으니 진행 상태 초기화
   localStorage.removeItem('arSelectedSpot');
   localStorage.removeItem('arScreen');
-  // 갤러리 갱신 (방문완료 표시)
-  renderSpotGallery();
+
+  // renderSpotGallery 오류가 후속 이벤트를 막지 않도록 try-catch
+  try{ renderSpotGallery(); } catch(e){ console.warn('renderSpotGallery err:', e); }
+
   const spot = S.targetSpot;
-  const codes = spot.gift?.codes || [];
+  if(!spot){ console.error('triggerArrival: S.targetSpot is null'); return; }
+
+  const codes = (spot.gift && spot.gift.codes) ? spot.gift.codes : [];
   const claimed = S.giftClaims[spot.id] || 0;
   const remaining = Math.max(0, codes.length - claimed);
-  const alreadyClaimed = !!localStorage.getItem('arClaimed_'+S.userFp+'_'+spot.id);
+  const fp = S.userFp || localStorage.getItem('arUserFp') || '';
+  const alreadyClaimed = !!localStorage.getItem('arClaimed_'+fp+'_'+spot.id);
 
-  // 선물 소진 or 이미 수령 → 암호 없이 바로 도착 화면
+  console.log('[triggerArrival] remaining:', remaining, 'alreadyClaimed:', alreadyClaimed, 'secretCode:', spot.secretCode);
+
+  // 선물 소진 or 이미 수령 → 바로 도착 화면
   if(remaining === 0 || alreadyClaimed){
     showArrivalScreen(spot);
   } else if(spot.secretCode && spot.secretCode.trim()){
-    // 선물 남아있고 암호 설정된 경우 → 암호 입력 팝업
+    // 선물 남아있고 암호 있음 → 암호 팝업
     openSecretModal(spot);
   } else {
+    // 선물 남아있고 암호 없음 → 바로 도착 화면
     showArrivalScreen(spot);
   }
 }
