@@ -1192,11 +1192,11 @@ function setNearestTarget(){
 function updateProximity(){
   if(!S.targetSpot||!S.userPos)return;
   const dist=haversine(S.userPos.lat,S.userPos.lng,S.targetSpot.lat,S.targetSpot.lng);
+  // pill/overlay는 없어도 도착 판정은 반드시 실행
   const pill=document.getElementById('dist-pill');
   const overlay=document.getElementById('prox-overlay');
-  if(!pill||!overlay) return;  // 헌트 화면이 아닐 때
   const dTxt=dist<1000?`${Math.round(dist)}m`:`${(dist/1000).toFixed(1)}km`;
-  pill.textContent=`📍 ${dTxt} 남음`;
+  if(pill) pill.textContent=`📍 ${dTxt} 남음`;
   // 진행 바 업데이트 (최대 거리 1000m 기준)
   const maxDist = S._startDist || Math.max(dist, 100);
   if(!S._startDist && dist > 50) S._startDist = dist;
@@ -1206,28 +1206,28 @@ function updateProximity(){
   updateCompassBearing();
   const gpsMargin = Math.max(30, S.accuracy||30);  // GPS 정확도 여유값 (최소 30m)
   if(dist <= S.targetSpot.radius + gpsMargin){
-    if(S.proximityState!=='arrived'){S.proximityState='arrived';pill.className='hunt-dist-pill hot';triggerArrival();}
+    if(S.proximityState!=='arrived'){S.proximityState='arrived';if(pill) pill.className='hunt-dist-pill hot';triggerArrival();}
     return;
   }
   if(dist<50+gpsMargin){
     if(!S.shownProx.r50){S.shownProx.r50=true;S.proximityState='hot';
-      pill.className='hunt-dist-pill hot';overlay.className='prox-overlay hot';
+      if(pill) pill.className='hunt-dist-pill hot';if(overlay) overlay.className='prox-overlay hot';
       showProxPopup('🔥','50m 안에 들어왔어요!','거의 다 왔습니다! 조금만 더!');
       vibrate([100,50,100,50,200]);}return;
   }
   if(dist<100+gpsMargin){
     if(!S.shownProx.r100){S.shownProx.r100=true;S.proximityState='warm';
-      pill.className='hunt-dist-pill warm';overlay.className='prox-overlay warm';
+      if(pill) pill.className='hunt-dist-pill warm';if(overlay) overlay.className='prox-overlay warm';
       showProxPopup('🟠','동창회 스팟에 거의 근접했어요!','100m 이내에 스팟이 있어요!');
       vibrate([100,50,100]);}return;
   }
   if(dist<500+gpsMargin){
     if(S.proximityState!=='warm'&&S.proximityState!=='hot'){
-      S.proximityState='warmfar';pill.className='hunt-dist-pill warm';overlay.className='prox-overlay warm';}
+      S.proximityState='warmfar';if(pill) pill.className='hunt-dist-pill warm';if(overlay) overlay.className='prox-overlay warm';}
     return;
   }
   if(S.proximityState!=='far'){
-    S.proximityState='far';pill.className='hunt-dist-pill';overlay.className='prox-overlay';}
+    S.proximityState='far';if(pill) pill.className='hunt-dist-pill';if(overlay) overlay.className='prox-overlay';}
 }
 function showProxPopup(icon,title,sub){
   document.getElementById('prox-popup-icon').textContent=icon;
