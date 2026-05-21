@@ -1205,9 +1205,24 @@ function updateProximity(){
   if(bar) bar.style.width = pct + '%';
   updateCompassBearing();
   const gpsMargin = Math.max(30, S.accuracy||30);  // GPS 정확도 여유값 (최소 30m)
-  if(dist <= S.targetSpot.radius + gpsMargin){
-    if(S.proximityState!=='arrived'){S.proximityState='arrived';if(pill) pill.className='hunt-dist-pill hot';triggerArrival();}
-    return;
+
+  // 도착 판정: 사용자가 선택한 스팟 기준으로 (S.targetSpot이 바뀌어도 안전)
+  const arrivalSpot = S.selectedSpotId
+    ? S.spots.find(function(s){ return s.id === S.selectedSpotId; })
+    : S.targetSpot;
+
+  if(arrivalSpot){
+    const arrivalDist = haversine(S.userPos.lat, S.userPos.lng, arrivalSpot.lat, arrivalSpot.lng);
+    if(arrivalDist <= arrivalSpot.radius + gpsMargin){
+      if(S.proximityState!=='arrived'){
+        S.proximityState='arrived';
+        if(pill) pill.className='hunt-dist-pill hot';
+        // S.targetSpot을 선택한 스팟으로 고정 후 triggerArrival
+        S.targetSpot = arrivalSpot;
+        triggerArrival();
+      }
+      return;
+    }
   }
   if(dist<50+gpsMargin){
     if(!S.shownProx.r50){S.shownProx.r50=true;S.proximityState='hot';
