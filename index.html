@@ -1255,9 +1255,14 @@ function showProxPopup(icon,title,sub){
   p.classList.add('show'); setTimeout(()=>p.classList.remove('show'),5000);
 }
 function triggerArrival(){
-  // S.targetSpot을 즉시 로컬 변수에 저장 (이후 변경되어도 영향 없도록)
-  const spot = S.targetSpot;
+  // 선택한 스팟 ID로 spot 확정 (selectedSpotId 우선)
+  var spot;
+  if(S.selectedSpotId){
+    spot = S.spots.find(function(s){ return s.id === S.selectedSpotId; });
+  }
+  if(!spot) spot = S.targetSpot;
   if(!spot){ showToast('오류: 스팟 정보 없음'); return; }
+  console.log('[triggerArrival] spot:', spot.name, 'selectedSpotId:', S.selectedSpotId, 'targetSpot:', S.targetSpot && S.targetSpot.name);
 
   vibrate([200,100,200,100,400]); playArrivalSound(); launchConfetti();
 
