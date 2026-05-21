@@ -1154,35 +1154,38 @@ function updateUserMarker(){
 // ════════════════════════════════════════════
 function setNearestTarget(){
   if(!S.spots.length)return;
-  // 사용자가 선택한 스팟이 있으면 그것만 추적
+
+  // selectedSpotId가 있으면 무조건 그 스팟으로 고정 (절대 바뀌지 않음)
   if(S.selectedSpotId){
-    const selected = S.spots.find(sp=>sp.id===S.selectedSpotId);
-    if(selected && !S.arrivedSpots.has(selected.id)){
-      if(S.targetSpot?.id !== selected.id){
-        S.shownProx={r100:false,r50:false}; S.proximityState='far';
-      }
-      S.targetSpot=selected;
-      var csnEl2=document.getElementById('compass-spot-name'); if(csnEl2) csnEl2.textContent=selected.emoji+' '+selected.name;
-      { var _ht=document.getElementById('hint-text'); if(_ht) _ht.textContent=selected.hint||'힌트가 등록되어 있지 않아요.'; }
-      return;
+    const selected = S.spots.find(function(sp){ return sp.id===S.selectedSpotId; });
+    if(selected){
+      S.targetSpot = selected;
+      var csnEl=document.getElementById('compass-spot-name');
+      if(csnEl) csnEl.textContent=selected.emoji+' '+selected.name;
+      var htEl=document.getElementById('hint-text');
+      if(htEl) htEl.textContent=selected.hint||'힌트가 등록되어 있지 않아요.';
     }
+    return;  // selectedSpotId 있으면 여기서 무조건 종료
   }
-  // selectedSpotId 없으면 가장 가까운 스팟으로
-  let minD=Infinity,nearest=null;
-  S.spots.forEach(spot=>{
+
+  // selectedSpotId 없을 때만 가장 가까운 스팟으로
+  var minD=Infinity, nearest=null;
+  S.spots.forEach(function(spot){
     if(S.arrivedSpots.has(spot.id))return;
-    const d=S.userPos?haversine(S.userPos.lat,S.userPos.lng,spot.lat,spot.lng):Infinity;
+    var d=S.userPos?haversine(S.userPos.lat,S.userPos.lng,spot.lat,spot.lng):Infinity;
     if(d<minD){minD=d;nearest=spot;}
   });
   if(nearest!==S.targetSpot){
     S.shownProx={r100:false,r50:false};
     S.proximityState='far';
-    S._startDist=null;  // 진행바 리셋
+    S._startDist=null;
   }
   S.targetSpot=nearest;
   if(nearest){
-    var csnEl3=document.getElementById('compass-spot-name'); if(csnEl3) csnEl3.textContent=nearest.emoji+' '+nearest.name;
-    { var _ht=document.getElementById('hint-text'); if(_ht) _ht.textContent=nearest.hint||'힌트가 등록되어 있지 않아요.'; }
+    var csnEl2=document.getElementById('compass-spot-name');
+    if(csnEl2) csnEl2.textContent=nearest.emoji+' '+nearest.name;
+    var htEl2=document.getElementById('hint-text');
+    if(htEl2) htEl2.textContent=nearest.hint||'힌트가 등록되어 있지 않아요.';
   }
 }
 
