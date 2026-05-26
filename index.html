@@ -2744,6 +2744,8 @@ function getCodeEntries(){
   return Array.from(document.querySelectorAll('#gift-codes-wrap .code-entry input')).map(i=>i.value.trim()).filter(Boolean);
 }
 async function addSpot(){
+  // 수정 모드면 updateSpot으로 위임
+  if(S._editingSpotId){ updateSpot(); return; }
   const name=document.getElementById('spot-name').value.trim();
   const lat=parseFloat(document.getElementById('spot-lat').value);
   const lng=parseFloat(document.getElementById('spot-lng').value);
