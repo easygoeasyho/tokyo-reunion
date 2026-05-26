@@ -484,8 +484,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
         <div class="field-label" style="margin-bottom:5px;">🏫 학교명 <span class="opt">선택</span></div>
         <input class="field-input" id="school-input" type="text" placeholder="예: 도쿄, 메이지, 리츠메이칸..." maxlength="20" autocomplete="off">
       </div>
+      <!-- 서약란 -->
+      <div id="pledge-wrap" style="margin:14px 0 4px;padding:14px 16px;background:#F8F9FF;border-radius:12px;border:1.5px solid #D0D8FF;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:#444;line-height:1.6;font-family:'Noto Sans KR',sans-serif;">
+          <input type="checkbox" id="pledge-check" style="width:17px;height:17px;margin-top:2px;flex-shrink:0;accent-color:#4A6CF7;"
+            onchange="var b=document.getElementById('nick-submit-btn');b.disabled=!this.checked;b.style.opacity=this.checked?'1':'0.5';">
+          <span>선물은 한 스팟당 1회만 수령할 수 있습니다. 중복 수령은 다른 친구들의 기회를 빼앗는 행위임을 인지하며, 이를 어길 경우 주최측의 요청에 따라 반환 의무가 있음에 동의합니다.</span>
+        </label>
+      </div>
       <!-- 입력 완료 버튼 / 수정 버튼 -->
-      <button id="nick-submit-btn" onclick="submitNickname()" style="margin-top:10px;width:100%;background:var(--blue);border:none;border-radius:var(--rsm);padding:11px;font-size:13px;font-weight:700;color:#fff;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">✅ 입력 완료</button>
+      <button id="nick-submit-btn" onclick="submitNickname()" disabled style="margin-top:10px;width:100%;background:var(--blue);border:none;border-radius:var(--rsm);padding:11px;font-size:13px;font-weight:700;color:#fff;font-family:'Noto Sans KR',sans-serif;cursor:pointer;opacity:0.5;">✅ 입력 완료</button>
       <button id="nick-edit-btn" onclick="toggleNickEdit()" style="display:none;margin-top:10px;width:100%;background:#fff;border:1.5px solid var(--blue);border-radius:var(--rsm);padding:9px;font-size:13px;font-weight:700;color:var(--blue);font-family:'Noto Sans KR',sans-serif;cursor:pointer;">✏️ 닉네임 · 학교명 수정</button>
     </div>
     <div>
@@ -1575,13 +1583,20 @@ function applyNickSavedMode(){
     if(schoolInput){ schoolInput.disabled=true; schoolInput.style.opacity='0.6'; schoolInput.style.background='var(--bg2)'; }
     if(editBtn) editBtn.style.display='block';
     if(submitBtn) submitBtn.style.display='none';
+    var pw = document.getElementById('pledge-wrap');
+    if(pw) pw.style.display='none';
   } else {
     nickInput.disabled = false;
     nickInput.style.opacity = '1';
     nickInput.style.background = '';
     if(schoolInput){ schoolInput.disabled=false; schoolInput.style.opacity='1'; schoolInput.style.background=''; }
     if(editBtn) editBtn.style.display='none';
-    if(submitBtn) submitBtn.style.display='block';
+    if(submitBtn){ submitBtn.style.display='block'; submitBtn.disabled=true; }
+    // 서약란 표시, 체크 안 된 상태로
+    var pledgeWrap = document.getElementById('pledge-wrap');
+    var pledgeCheck = document.getElementById('pledge-check');
+    if(pledgeWrap) pledgeWrap.style.display='block';
+    if(pledgeCheck) pledgeCheck.checked=false;
   }
 }
 
