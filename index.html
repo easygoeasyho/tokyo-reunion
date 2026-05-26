@@ -783,7 +783,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 // ════════════════════════════════════════════
 // CONSTANTS & STATE
 // ════════════════════════════════════════════
-const ADMIN_PW = 'Sisamedia0901';
+const ADMIN_PW = btoa('Sisamedia0901');
 
 const S = {
   nickname:'', school:'', currentScreen:'intro', prevScreen:'intro',
@@ -1026,7 +1026,7 @@ function askAdminPw(){
 }
 function closePwModal(){ document.getElementById('pw-modal').classList.add('hidden'); }
 function checkPw(){
-  if(document.getElementById('pw-input').value===ADMIN_PW){ closePwModal(); enterAdmin(); }
+  if(btoa(document.getElementById('pw-input').value)===ADMIN_PW){ closePwModal(); enterAdmin(); }
   else{
     document.getElementById('pw-err').style.display='block';
     document.getElementById('pw-input').classList.add('err');
@@ -1543,6 +1543,10 @@ function renderAllComments(){
 
 // 스팟 선택으로 돌아가기
 function backToSpotSelect(){
+  // 헌트 중이면 확인창
+  if(S.currentScreen === 'hunt'){
+    if(!confirm('스팟 탐색을 중단하고 나가시겠어요?')) return;
+  }
   S.selectedSpotId = null;
   localStorage.removeItem('arSelectedSpot');
   localStorage.removeItem('arScreen');
@@ -3168,7 +3172,21 @@ if(savedNick){
   }, 100);
 }
 
-// Firebase 준비되면 스팟 로드
+// Firebase 준비되면 스팟 로드 + 홈화면 GPS 시작
+if(navigator.geolocation){
+  navigator.geolocation.watchPosition(function(pos){
+    S.userPos = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+    S.accuracy = pos.coords.accuracy;
+    updateGalleryDists();
+    // 팝업 열려있으면 거리 즉시 갱신
+    var popupDistEl = document.getElementById('popup-dist');
+    if(popupDistEl && S._popupSpot){
+      var pd = haversine(pos.coords.latitude, pos.coords.longitude, S._popupSpot.lat, S._popupSpot.lng);
+      popupDistEl.textContent = pd<1000 ? Math.round(pd)+'m' : (pd/1000).toFixed(1)+'km';
+    }
+  }, function(){}, {enableHighAccuracy:true, maximumAge:10000, timeout:15000});
+}
+
 waitFirebase(()=>{
   loadSpots().then(()=>{
     if(!savedNick || !S.spots.length) return;
