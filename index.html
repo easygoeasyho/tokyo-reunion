@@ -1276,6 +1276,7 @@ function triggerArrival(){
 
   // 도착 처리
   S.arrivedSpots.add(spot.id);
+  localStorage.setItem('arArrivedSpots', JSON.stringify([...S.arrivedSpots]));
   S.selectedSpotId = null;
   localStorage.removeItem('arSelectedSpot');
   localStorage.removeItem('arScreen');
@@ -2579,6 +2580,8 @@ async function showArrivalScreen(spot){
   exhEl.style.display='none';
 
   // ── 화면 먼저 전환 (Firebase 응답 전에) ──
+  S.arrivedSpots.add(spot.id);
+  localStorage.setItem('arArrivedSpots', JSON.stringify([...S.arrivedSpots]));
   S._currentSpot=spot;
   S._commentTargetSpotId=spot.id;
   S.filterSpotId=spot.id;
