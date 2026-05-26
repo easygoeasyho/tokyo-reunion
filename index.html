@@ -938,7 +938,11 @@ async function renderSpotStatus(){
 // LOAD SPOTS
 // ════════════════════════════════════════════
 async function loadSpots(){
-  if(!fbReady()) return;
+  if(!fbReady()){
+    // Firebase 준비 안 됐으면 준비될 때까지 대기 후 재실행
+    waitFirebase(function(){ loadSpots(); });
+    return;
+  }
   try{
     S.spots = await fbLoadSpots();
     // 각 스팟의 수령 카운트 병렬로 로드
