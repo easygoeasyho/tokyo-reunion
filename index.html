@@ -2719,7 +2719,57 @@ function getCodeEntries(){
   return Array.from(document.querySelectorAll('#gift-codes-wrap .code-entry input')).map(i=>i.value.trim()).filter(Boolean);
 }
 async function addSpot(){
-  
+  const name=document.getElementById('spot-name').value.trim();
+  const lat=parseFloat(document.getElementById('spot-lat').value);
+  const lng=parseFloat(document.getElementById('spot-lng').value);
+  if(!name||isNaN(lat)||isNaN(lng)){showToast('⚠️ 스팟 이름과 위치를 입력해주세요');return;}
+  const codes=getCodeEntries();
+  const id='spot_'+Date.now();
+  const newSpot={
+    id,
+    name,
+    emoji:document.getElementById('spot-emoji').value.trim()||'📍',
+    lat,lng,
+    radius:parseInt(document.getElementById('spot-radius').value)||30,
+    nearStation:document.getElementById('spot-station').value.trim(),
+    msgTitle:document.getElementById('spot-msg-title').value.trim()||'선생님 응원 메시지',
+    hint:document.getElementById('spot-hint').value.trim(),
+    message:document.getElementById('spot-msg').value.trim(),
+    videoUrl:document.getElementById('spot-video').value.trim(),
+    secretCode:document.getElementById('spot-secret-code').value.trim(),
+    secretHint:document.getElementById('spot-secret-hint').value.trim(),
+    teacherName:'선생님',
+    gift:{
+      store:document.getElementById('gift-store-input').value.trim(),
+      item:document.getElementById('gift-item-input').value.trim(),
+      imgBase64:S._giftImgBase64||'',
+      codes,
+    },
+  };
+  showToast('⏳ 스팟 등록 중...');
+  waitFirebase(async function(){
+    try{
+      await fbSaveSpot(newSpot);
+      S.spots.push(newSpot);
+      if(S.adminMap){
+        const m=L.marker([lat,lng]).addTo(S.adminMap).bindPopup(`${newSpot.emoji} ${name}`);
+        S.adminMapMarkers[id]=m;
+      }
+      renderAdminSpotList(); renderSpotGallery(); renderSpotStatus();
+      renderAdminCommentTabs(); renderAdminStats();
+      ['spot-name','spot-msg','spot-video','spot-hint','gift-store-input','gift-item-input','spot-secret-code','spot-secret-hint']
+        .forEach(fid=>document.getElementById(fid).value='');
+      document.getElementById('spot-lat').value='';document.getElementById('spot-lng').value='';
+      document.getElementById('spot-radius').value='30';document.getElementById('spot-emoji').value='';
+      document.getElementById('gift-codes-wrap').innerHTML=
+        '<div class="code-entry"><span class="code-num">1.</span><input class="admin-input" placeholder="코드 입력 (예: SBUX-ICE-001)"></div>';
+      document.getElementById('btn-add-code').style.display='block';
+      removeGiftImg(); S._giftImgBase64=null;
+      showToast(`✅ "${name}" 등록 완료!`);
+    }catch(e){ showToast('❌ 저장 실패: '+e.message); console.error(e); }
+  });
+}
+
 // ─── UPDATE SPOT ───
 async function updateSpot(){
   const id = S._editingSpotId;
@@ -2752,6 +2802,7 @@ async function updateSpot(){
     },
   };
   showToast('⏳ 스팟 수정 중...');
+  waitFirebase(async function(){
   try{
     await fbSaveSpot(updatedSpot);
     // 지도 핀 업데이트 (기존 핀 제거 후 새 위치에 추가)
@@ -2779,59 +2830,10 @@ async function updateSpot(){
     cancelEditSpot();
     showToast(`✅ "${name}" 수정 완료!`);
   }catch(e){ showToast('❌ 수정 실패: '+e.message); console.error(e); }
+  });
 }
 
-// If editing existing spot, call updateSpot instead
-  if(S._editingSpotId){ await updateSpot(); return; }
-  const name=document.getElementById('spot-name').value.trim();
-  const lat=parseFloat(document.getElementById('spot-lat').value);
-  const lng=parseFloat(document.getElementById('spot-lng').value);
-  if(!name||isNaN(lat)||isNaN(lng)){showToast('⚠️ 스팟 이름과 위치를 입력해주세요');return;}
-  const codes=getCodeEntries();
-  const spot={
-    id:'spot_'+Date.now(), name,
-    emoji:document.getElementById('spot-emoji').value.trim()||'📍',
-    lat,lng,
-    radius:parseInt(document.getElementById('spot-radius').value)||30,
-    nearStation:document.getElementById('spot-station').value.trim(),
-    nearStation:document.getElementById('spot-station').value.trim(),
-    msgTitle:document.getElementById('spot-msg-title').value.trim()||'선생님 응원 메시지',
-    hint:document.getElementById('spot-hint').value.trim(),
-    message:document.getElementById('spot-msg').value.trim(),
-    videoUrl:document.getElementById('spot-video').value.trim(),
-    secretCode:document.getElementById('spot-secret-code').value.trim(),
-    secretHint:document.getElementById('spot-secret-hint').value.trim(),
-    teacherName:'선생님',
-    gift:{
-      store:document.getElementById('gift-store-input').value.trim(),
-      item:document.getElementById('gift-item-input').value.trim(),
-      imgBase64:S._giftImgBase64||'',
-      codes,
-    },
-  };
-  showToast('⏳ 스팟 저장 중...');
-  try{
-    await fbSaveSpot(spot);
-    S.spots.push(spot);
-    renderAdminSpotList(); renderSpotStatus();
-    if(S.adminMap){
-      const m = L.marker([lat,lng]).addTo(S.adminMap).bindPopup(`${spot.emoji} ${name}`);
-      S.adminMapMarkers[spot.id] = m;
-    }
-    // 폼 초기화
-    ['spot-name','spot-msg','spot-video','spot-hint','spot-station','spot-msg-title','gift-store-input','gift-item-input','spot-secret-code','spot-secret-hint']
-      .forEach(fid=>{ const el=document.getElementById(fid); if(el) el.value=''; });
-    document.getElementById('spot-lat').value='';document.getElementById('spot-lng').value='';
-    document.getElementById('spot-radius').value='30';document.getElementById('spot-emoji').value='';
-    document.getElementById('gift-codes-wrap').innerHTML=
-      '<div class="code-entry"><span class="code-num">1.</span><input class="admin-input" placeholder="코드 입력 (예: SBUX-ICE-001)"></div>';
-    document.getElementById('btn-add-code').style.display='block';
-    removeGiftImg(); S._giftImgBase64=null;
-    if(S.adminMarker){S.adminMap.removeLayer(S.adminMarker);S.adminMarker=null;}
-    showToast(`✅ "${name}" 등록 완료! (코드 ${codes.length}개)`);
-    renderAdminCommentTabs(); renderAdminStats();
-  }catch(e){ showToast('❌ 저장 실패: '+e.message); console.error(e); }
-}
+
 async function removeSpot(id){
   if(!confirm('이 스팟을 삭제하시겠습니까?'))return;
   try{
