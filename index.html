@@ -939,12 +939,13 @@ async function renderSpotStatus(){
 // ════════════════════════════════════════════
 async function loadSpots(){
   if(!fbReady()){
-    // Firebase 준비 안 됐으면 준비될 때까지 대기 후 재실행
     waitFirebase(function(){ loadSpots(); });
     return;
   }
   try{
+    console.log('[loadSpots] Firebase 준비됨, 스팟 로드 시작');
     S.spots = await fbLoadSpots();
+    console.log('[loadSpots] 스팟 로드 완료:', S.spots.length, '개');
     // 각 스팟의 수령 카운트 병렬로 로드
     await Promise.all(S.spots.map(async function(sp){
       try{
