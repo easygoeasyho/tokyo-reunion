@@ -591,6 +591,11 @@ button:active, .sg-card:active, .spot-card:active {
     </div>
     <div id="map"></div>
     <div class="prox-overlay" id="prox-overlay"></div>
+    <!-- 비밀번호 재입력 배너 -->
+    <div id="secret-reopen-banner" style="display:none;position:absolute;bottom:0;left:0;right:0;z-index:700;background:linear-gradient(90deg,#3A6FD8,#5B8DEF);padding:10px 16px;align-items:center;justify-content:space-between;gap:8px;">
+      <span style="color:#fff;font-size:13px;font-weight:700;">🔑 암호를 아직 입력하지 않았어요!</span>
+      <button onclick="reopenSecretModal()" style="background:#fff;color:#3A6FD8;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">다시 입력</button>
+    </div>
 
     <div class="prox-popup" id="prox-popup">
       <div class="prox-popup-icon" id="prox-popup-icon">🔥</div>
@@ -1171,7 +1176,7 @@ function startDemoMode(){
 function updateUserMarker(){
   if(!S.map||!S.userPos)return;
   if(!S.userMarker){
-    const icon=L.divIcon({html:'<div class="my-marker-student">' + '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 40\' width=\'32\' height=\'40\'>  <!-- 배낭 -->  <rect x=\'10\' y=\'17\' width=\'12\' height=\'13\' rx=\'3\' fill=\'#5B8DEF\' stroke=\'#3A6FD8\' stroke-width=\'1\'/>  <rect x=\'13\' y=\'15\' width=\'6\' height=\'4\' rx=\'2\' fill=\'#3A6FD8\'/>  <rect x=\'14\' y=\'21\' width=\'4\' height=\'3\' rx=\'1\' fill=\'#fff\' opacity=\'0.5\'/>  <!-- 몸통 -->  <rect x=\'11\' y=\'17\' width=\'10\' height=\'11\' rx=\'2\' fill=\'#F4A261\'/>  <!-- 머리 -->  <circle cx=\'16\' cy=\'11\' r=\'6\' fill=\'#FDDBB4\'/>  <!-- 머리카락 -->  <ellipse cx=\'16\' cy=\'6.5\' rx=\'5.5\' ry=\'3\' fill=\'#5C3D2E\'/>  <ellipse cx=\'11\' cy=\'10\' rx=\'1.5\' ry=\'3\' fill=\'#5C3D2E\'/>  <ellipse cx=\'21\' cy=\'10\' rx=\'1.5\' ry=\'3\' fill=\'#5C3D2E\'/>  <!-- 눈 -->  <circle cx=\'14\' cy=\'11\' r=\'0.9\' fill=\'#333\'/>  <circle cx=\'18\' cy=\'11\' r=\'0.9\' fill=\'#333\'/>  <!-- 입 -->  <path d=\'M14.5 13.5 Q16 15 17.5 13.5\' stroke=\'#c0704a\' stroke-width=\'0.8\' fill=\'none\' stroke-linecap=\'round\'/>  <!-- 팔 -->  <rect x=\'7\' y=\'17\' width=\'4\' height=\'2.5\' rx=\'1.2\' fill=\'#F4A261\'/>  <rect x=\'21\' y=\'17\' width=\'4\' height=\'2.5\' rx=\'1.2\' fill=\'#FDDBB4\'/>  <!-- 다리 -->  <rect x=\'12\' y=\'27\' width=\'3.5\' height=\'8\' rx=\'1.5\' fill=\'#4A4A8A\'/>  <rect x=\'16.5\' y=\'27\' width=\'3.5\' height=\'8\' rx=\'1.5\' fill=\'#4A4A8A\'/>  <!-- 신발 -->  <ellipse cx=\'13.7\' cy=\'35.5\' rx=\'3\' ry=\'1.5\' fill=\'#222\'/>  <ellipse cx=\'18.3\' cy=\'35.5\' rx=\'3\' ry=\'1.5\' fill=\'#222\'/></svg>' + '</div>',className:'',iconSize:[32,40],iconAnchor:[16,38]});
+    const icon=L.divIcon({html:'<div class="my-marker-student">' + '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 44 54\' width=\'44\' height=\'54\'>  <!-- 그림자 -->  <ellipse cx=\'22\' cy=\'52\' rx=\'10\' ry=\'2.5\' fill=\'rgba(0,0,0,0.15)\'/>  <!-- 다리 -->  <rect x=\'14\' y=\'36\' width=\'6\' height=\'12\' rx=\'3\' fill=\'#2C3E8C\'/>  <rect x=\'24\' y=\'36\' width=\'6\' height=\'12\' rx=\'3\' fill=\'#2C3E8C\'/>  <!-- 신발 -->  <ellipse cx=\'17\' cy=\'48.5\' rx=\'5\' ry=\'2.5\' fill=\'#1a1a1a\'/>  <ellipse cx=\'27\' cy=\'48.5\' rx=\'5\' ry=\'2.5\' fill=\'#1a1a1a\'/>  <!-- 백팩 -->  <rect x=\'13\' y=\'20\' width=\'18\' height=\'18\' rx=\'4\' fill=\'#E74C3C\' stroke=\'#C0392B\' stroke-width=\'1.2\'/>  <rect x=\'17\' y=\'17\' width=\'10\' height=\'6\' rx=\'3\' fill=\'#C0392B\'/>  <rect x=\'19\' y=\'27\' width=\'6\' height=\'5\' rx=\'1.5\' fill=\'#fff\' opacity=\'0.5\'/>  <rect x=\'20.5\' y=\'26\' width=\'3\' height=\'7\' rx=\'1\' fill=\'#fff\' opacity=\'0.35\'/>  <!-- 팔 -->  <rect x=\'8\' y=\'21\' width=\'6\' height=\'4\' rx=\'2\' fill=\'#1E88E5\'/>  <rect x=\'30\' y=\'21\' width=\'6\' height=\'4\' rx=\'2\' fill=\'#1E88E5\'/>  <!-- 몸통 (상의: 쨍한 파랑) -->  <rect x=\'14\' y=\'21\' width=\'16\' height=\'15\' rx=\'3\' fill=\'#1E88E5\'/>  <!-- 목 -->  <rect x=\'19\' y=\'18\' width=\'6\' height=\'5\' rx=\'2\' fill=\'#FDDBB4\'/>  <!-- 머리 -->  <circle cx=\'22\' cy=\'14\' r=\'9\' fill=\'#FDDBB4\'/>  <!-- 캡모자 -->  <ellipse cx=\'22\' cy=\'7\' rx=\'10\' ry=\'3.5\' fill=\'#C0392B\'/>  <rect x=\'12\' y=\'4.5\' width=\'20\' height=\'7\' rx=\'3.5\' fill=\'#E74C3C\'/>  <!-- 모자 챙 -->  <ellipse cx=\'22\' cy=\'11.5\' rx=\'11\' ry=\'2.5\' fill=\'#C0392B\'/>  <!-- 모자 버튼 -->  <circle cx=\'22\' cy=\'5\' r=\'1.2\' fill=\'#fff\' opacity=\'0.7\'/>  <!-- 눈 -->  <circle cx=\'19\' cy=\'14\' r=\'1.3\' fill=\'#333\'/>  <circle cx=\'25\' cy=\'14\' r=\'1.3\' fill=\'#333\'/>  <!-- 눈 하이라이트 -->  <circle cx=\'19.5\' cy=\'13.4\' r=\'0.45\' fill=\'#fff\'/>  <circle cx=\'25.5\' cy=\'13.4\' r=\'0.45\' fill=\'#fff\'/>  <!-- 입 (미소) -->  <path d=\'M19.5 17 Q22 19.5 24.5 17\' stroke=\'#c0704a\' stroke-width=\'1.1\' fill=\'none\' stroke-linecap=\'round\'/>  <!-- 볼터치 -->  <circle cx=\'17.5\' cy=\'16\' r=\'2\' fill=\'#FFB3A7\' opacity=\'0.5\'/>  <circle cx=\'26.5\' cy=\'16\' r=\'2\' fill=\'#FFB3A7\' opacity=\'0.5\'/></svg>' + '</div>',className:'',iconSize:[44,54],iconAnchor:[22,52]});
     S.userMarker=L.marker([S.userPos.lat,S.userPos.lng],{icon}).addTo(S.map);
     // 최초 위치 파악 시에만 지도 이동
     S.map.setView([S.userPos.lat,S.userPos.lng],16);
@@ -1368,8 +1373,20 @@ function openSecretModal(spot){
   modal._spot = spot;
   setTimeout(()=>input.focus(), 200);
 }
+
+function reopenSecretModal(){
+  var banner = document.getElementById('secret-reopen-banner');
+  if(banner) banner.style.display = 'none';
+  if(S._currentSpot) openSecretModal(S._currentSpot);
+}
+
 function closeSecretModal(){
   document.getElementById('secret-modal').classList.add('hidden');
+  // 닫은 후 도착 화면이 아직 안 열렸으면 재오픈 버튼 배너 표시
+  if(S._currentSpot && S._currentSpot.secretCode){
+    var banner = document.getElementById('secret-reopen-banner');
+    if(banner) banner.style.display = 'flex';
+  }
 }
 function toggleSecretHint(){
   const box = document.getElementById('secret-hint-box');
@@ -1420,7 +1437,10 @@ function enableSensors(){
 }
 function toggleHintPanel(){
   var p = document.getElementById('hint-panel-new');
-  if(p) p.style.display = p.style.display==='none' ? 'block' : 'none';
+  if(!p) return;
+  // getComputedStyle로 실제 display 값 확인 (CSS 기본값 포함)
+  var current = window.getComputedStyle(p).display;
+  p.style.display = (current === 'none') ? 'block' : 'none';
 }
 function locateMe(){
   if(S.userPos) S.map && S.map.setView([S.userPos.lat,S.userPos.lng],16);
@@ -1774,6 +1794,17 @@ function selectSpotAndHunt(spotId){
     catch(e){ console.error('initHuntMap 오류:', e); }
     try{ startGeolocation(); }
     catch(e){ console.error('startGeolocation 오류:', e); }
+  // 새로고침 복원 시 secretCode 스팟이고 아직 미수령이면 배너 표시
+  try{
+    var _rSpot = S.targetSpot || S.spots.find(function(s){return s.id===S.selectedSpotId;});
+    if(_rSpot && _rSpot.secretCode && _rSpot.secretCode.trim()){
+      var _localKey = 'arClaimed_'+S.userFp+'_'+_rSpot.id;
+      if(!localStorage.getItem(_localKey)){
+        var _banner = document.getElementById('secret-reopen-banner');
+        if(_banner) _banner.style.display = 'flex';
+      }
+    }
+  } catch(e){}
     startCompass();
   }, 100);
   // 나침반 즉시 해당 스팟으로 설정
