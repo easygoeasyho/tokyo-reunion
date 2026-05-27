@@ -1294,7 +1294,12 @@ function showProxPopup(icon,title,sub){
 
 // ════ 방문 기록 Firebase에 저장 (visits 컬렉션) ════
 async function fbRecordVisit(spotId){
-  if(!fbReady() || !spotId) return;
+  if(!spotId) return;
+  // Firebase 미준비 시 준비될 때까지 대기 후 재시도
+  if(!fbReady()){
+    waitFirebase(function(){ fbRecordVisit(spotId); });
+    return;
+  }
   const {doc, runTransaction} = window._fs;
   const visitRef = doc(db(), 'visits', spotId);
   try{
@@ -1303,6 +1308,7 @@ async function fbRecordVisit(spotId){
       var newCount = snap.exists() ? (snap.data().count||0) + 1 : 1;
       transaction.set(visitRef, {count: newCount}, {merge: true});
     });
+    console.log('[fbRecordVisit] 방문 기록 완료:', spotId);
   } catch(e){
     console.warn('[fbRecordVisit] 실패:', e);
   }
@@ -2508,14 +2514,27 @@ function openSpotPopup(sp){
   }
 
   // 방문자 수 (visits 컬렉션 기준 - 실시간)
-  document.getElementById('popup-visitors').textContent = '...';
-  fbGetVisitCount(sp.id).then(function(cnt){
-    var el = document.getElementById('popup-visitors');
-    if(el) el.textContent = cnt;
-  }).catch(function(){
-    var el = document.getElementById('popup-visitors');
-    if(el) el.textContent = 0;
-  });
+  var _visitorEl = document.getElementById('popup-visitors');
+  if(_visitorEl) _visitorEl.textContent = '...';
+  var _visitorSpotId = sp.id;
+  function _loadVisitorCount(){
+    if(!fbReady()){
+      // Firebase 준비 안 됐으면 준비 후 재시도
+      waitFirebase(function(){ _loadVisitorCount(); });
+      return;
+    }
+    fbGetVisitCount(_visitorSpotId).then(function(cnt){
+      var el = document.getElementById('popup-visitors');
+      // 팝업이 아직 같은 스팟을 보고 있는지 확인
+      if(el && S._popupSpot && S._popupSpot.id === _visitorSpotId){
+        el.textContent = cnt;
+      }
+    }).catch(function(){
+      var el = document.getElementById('popup-visitors');
+      if(el) el.textContent = '-';
+    });
+  }
+  _loadVisitorCount();
 
   document.getElementById('spot-popup').classList.remove('hidden');
 }
