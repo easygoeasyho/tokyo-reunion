@@ -573,6 +573,17 @@ button:active, .sg-card:active, .spot-card:active {
   <div class="map-container">
     <!-- 힌트/내위치 버튼 — 지도 우측 하단 고정 -->
 
+    <!-- 힌트/내 위치 버튼 - 지도 우측, pill bar 안 겹치도록 위로 올림 -->
+    <div style="position:absolute;right:12px;bottom:80px;z-index:600;display:flex;flex-direction:column;gap:8px;">
+      <button onclick="toggleHintPanel()" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:8px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+        <span style="font-size:20px;">💡</span>
+        <span style="font-size:11px;font-weight:700;color:var(--ink-mid);">힌트</span>
+      </button>
+      <button onclick="locateMe()" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:8px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+        <span style="font-size:20px;">📍</span>
+        <span style="font-size:11px;font-weight:700;color:var(--ink-mid);">내 위치</span>
+      </button>
+    </div>
     <!-- 힌트 패널 -->
     <div id="hint-panel-new" style="display:none;position:absolute;right:12px;bottom:160px;z-index:600;width:200px;background:#fff;border:1.5px solid var(--blue);border-radius:var(--rsm);padding:10px 14px;font-size:12px;color:var(--ink-mid);line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.15);">
       <b style="color:var(--blue);">💡 힌트</b><br>
@@ -586,17 +597,6 @@ button:active, .sg-card:active, .spot-card:active {
       <div class="prox-popup-title" id="prox-popup-title">거의 다 왔어요!</div>
       <div class="prox-popup-sub" id="prox-popup-sub">조금만 더!</div>
     </div>
-  </div>
-  <!-- 힌트/내 위치 버튼 - pill bar 위 -->
-  <div style="display:flex;gap:8px;padding:6px 14px 0;background:#fff;border-top:1px solid var(--border);">
-    <button onclick="toggleHintPanel()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#F8F9FF;border:1.5px solid var(--border);border-radius:10px;padding:7px 0;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
-      <span style="font-size:17px;">💡</span>
-      <span style="font-size:12px;font-weight:700;color:var(--ink-mid);">힌트</span>
-    </button>
-    <button onclick="locateMe()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#F8F9FF;border:1.5px solid var(--border);border-radius:10px;padding:7px 0;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
-      <span style="font-size:17px;">📍</span>
-      <span style="font-size:12px;font-weight:700;color:var(--ink-mid);">내 위치</span>
-    </button>
   </div>
   <div class="compass-panel">
     <div class="compass-wrap">
@@ -1036,9 +1036,8 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById('screen-'+id).classList.remove('hidden');
   S.currentScreen=id;
-  const adminBtn=document.getElementById('admin-btn');
-  // intro, spotselect에서만 관리자 버튼 표시
-  adminBtn.style.display=(id==='intro')?'block':'none';
+  // 관리자 버튼은 항상 숨김 (5번 탭으로만 접근)
+  // adminBtn은 display:none 고정
 }
 
 // ════════════════════════════════════════════
@@ -1635,6 +1634,10 @@ function applyNickSavedMode(){
     if(schoolInput){ schoolInput.disabled=true; schoolInput.style.opacity='0.6'; schoolInput.style.background='var(--bg2)'; }
     if(editBtn) editBtn.style.display='block';
     if(submitBtn) submitBtn.style.display='none';
+    // 재접속 시 서약 체크 상태 복원 (입력 완료 버튼은 숨겨도 체크박스 상태는 유지)
+    var pledgeDoneRestored = localStorage.getItem('arPledgeDone') === '1';
+    var pledgeCheckEl = document.getElementById('pledge-check');
+    if(pledgeCheckEl) pledgeCheckEl.checked = pledgeDoneRestored;
     var pw = document.getElementById('pledge-wrap');
 
   } else {
