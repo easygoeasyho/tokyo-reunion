@@ -128,6 +128,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .compass-center{position:absolute;top:50%;left:50%;width:14px;height:14px;border-radius:50%;background:var(--blue);transform:translate(-50%,-50%);z-index:2;}
 .compass-label{font-size:11px;color:var(--ink-lt);text-align:center;}
 .my-marker{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#5B8DEF,#3A6FD8);border:3px solid #fff;box-shadow:0 2px 8px rgba(58,111,216,0.5);position:relative;display:flex;align-items:center;justify-content:center;font-size:14px;animation:marker-pulse 2s infinite;}
+
+@keyframes markerPulse {
+  0%   { transform: scale(1);    filter: drop-shadow(0 2px 4px rgba(58,111,216,0.3)); }
+  50%  { transform: scale(1.18); filter: drop-shadow(0 4px 10px rgba(58,111,216,0.55)); }
+  100% { transform: scale(1);    filter: drop-shadow(0 2px 4px rgba(58,111,216,0.3)); }
+}
+.my-marker-student {
+  animation: markerPulse 2s ease-in-out infinite;
+  transform-origin: center bottom;
+  display: block;
+  cursor: default;
+}
+
 @keyframes marker-pulse{0%,100%{box-shadow:0 2px 8px rgba(58,111,216,0.5),0 0 0 0 rgba(58,111,216,0.3);}50%{box-shadow:0 2px 8px rgba(58,111,216,0.5),0 0 0 8px rgba(58,111,216,0);}}
 
 /* ══ ARRIVAL ══ */
@@ -407,6 +420,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
 .spot-popup-btns{display:flex;gap:10px;margin-top:18px;}
 .spot-popup-btn-cancel{flex:1;padding:13px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--rsm);font-size:13px;font-weight:700;color:var(--ink-mid);font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;}
 .spot-popup-btn-go{flex:1;padding:13px;background:var(--blue);border:none;border-radius:var(--rsm);font-size:13px;font-weight:700;color:#fff;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;}
+
+/* ── 버튼 탭 피드백 ── */
+button:active, .sg-card:active, .spot-card:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+  transition: transform 0.08s, opacity 0.08s;
+}
+.intro-btn:active {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+  transition: transform 0.08s;
+}
+
 </style>
 
 <!-- Firebase SDK -->
@@ -485,10 +511,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
         <input class="field-input" id="school-input" type="text" placeholder="예: 도쿄, 메이지, 리츠메이칸..." maxlength="20" autocomplete="off">
       </div>
       <!-- 서약란 -->
-      <div id="pledge-wrap" style="margin:14px 0 4px;padding:14px 16px;background:#F8F9FF;border-radius:12px;border:1.5px solid #D0D8FF;">
+      <div id="pledge-wrap" style="margin:14px 0 4px;padding:14px 16px;background:var(--bg2);border-radius:var(--rsm);border:1.5px solid var(--border);">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:#444;line-height:1.6;font-family:'Noto Sans KR',sans-serif;">
           <input type="checkbox" id="pledge-check" style="width:17px;height:17px;margin-top:2px;flex-shrink:0;accent-color:#4A6CF7;"
-            onchange="var b=document.getElementById('nick-submit-btn');b.disabled=!this.checked;b.style.opacity=this.checked?'1':'0.5';">
+            onchange="var b=document.getElementById('nick-submit-btn');b.disabled=!this.checked;b.style.opacity=this.checked?'1':'0.5';localStorage.setItem('arPledgeDone',this.checked?'1':'');">
           <span>선물은 한 스팟당 1회만 수령할 수 있습니다. 중복 수령은 다른 친구들의 기회를 빼앗는 행위임을 인지하며, 이를 어길 경우 주최측의 요청에 따라 반환 의무가 있음에 동의합니다.</span>
         </label>
       </div>
@@ -546,16 +572,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
   </div>
   <div class="map-container">
     <!-- 힌트/내위치 버튼 — 지도 우측 하단 고정 -->
-    <div style="position:absolute;right:12px;bottom:16px;z-index:600;display:flex;flex-direction:column;gap:8px;">
-      <button onclick="toggleHintPanel()" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:8px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.12);">
-        <span style="font-size:20px;">💡</span>
-        <span style="font-size:11px;font-weight:700;color:var(--ink-mid);">힌트</span>
-      </button>
-      <button onclick="locateMe()" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:8px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.12);">
-        <span style="font-size:20px;">📍</span>
-        <span style="font-size:11px;font-weight:700;color:var(--ink-mid);">내 위치</span>
-      </button>
-    </div>
+
     <!-- 힌트 패널 -->
     <div id="hint-panel-new" style="display:none;position:absolute;right:12px;bottom:160px;z-index:600;width:200px;background:#fff;border:1.5px solid var(--blue);border-radius:var(--rsm);padding:10px 14px;font-size:12px;color:var(--ink-mid);line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.15);">
       <b style="color:var(--blue);">💡 힌트</b><br>
@@ -569,6 +586,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font
       <div class="prox-popup-title" id="prox-popup-title">거의 다 왔어요!</div>
       <div class="prox-popup-sub" id="prox-popup-sub">조금만 더!</div>
     </div>
+  </div>
+  <!-- 힌트/내 위치 버튼 - pill bar 위 -->
+  <div style="display:flex;gap:8px;padding:6px 14px 0;background:#fff;border-top:1px solid var(--border);">
+    <button onclick="toggleHintPanel()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#F8F9FF;border:1.5px solid var(--border);border-radius:10px;padding:7px 0;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+      <span style="font-size:17px;">💡</span>
+      <span style="font-size:12px;font-weight:700;color:var(--ink-mid);">힌트</span>
+    </button>
+    <button onclick="locateMe()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#F8F9FF;border:1.5px solid var(--border);border-radius:10px;padding:7px 0;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+      <span style="font-size:17px;">📍</span>
+      <span style="font-size:12px;font-weight:700;color:var(--ink-mid);">내 위치</span>
+    </button>
   </div>
   <div class="compass-panel">
     <div class="compass-wrap">
@@ -791,10 +819,11 @@ const S = {
   spots:[], comments:{}, giftClaims:{},
   map:null, adminMap:null, userMarker:null, adminMarker:null,
   watchId:null, shownProx:{r100:false,r50:false},
-  proximityState:'far', arrivedSpots:new Set(),
+  proximityState:'far', arrivedSpots:new Set(JSON.parse(localStorage.getItem('arArrivedSpots')||'[]')),
   demoMode:false, hintOpen:false, activeTab:'comment', _currentSpot:null,
-  userFp:null, _editingSpotId:null, adminMapMarkers:{}, filterSpotId:null, _commentTargetSpotId:null, selectedSpotId:null, filterSpotId:null,
+  userFp:null, _editingSpotId:null, adminMapMarkers:{}, filterSpotId:null, _commentTargetSpotId:null, selectedSpotId:null,
   _giftImgBase64:null,
+  _homeWatchId:null,
   _unsubComments:{},   // Firestore 실시간 리스너 해제용
 };
 
@@ -841,10 +870,8 @@ async function fbClaimGiftCode(spotId, codes){
   }
 
   if(!fbReady() || !S.userFp){
-    // Firebase 미준비 시 로컬만으로 처리 (fallback)
-    const fallbackCode = codes[0] || null;
-    if(fallbackCode) localStorage.setItem(localKey, fallbackCode);
-    return fallbackCode;
+    // Firebase 미준비 시 코드 지급 차단 (중복 수령 방지)
+    return '__firebase_not_ready__';
   }
 
   const {runTransaction, doc} = fs();
@@ -1091,6 +1118,11 @@ function initHuntMap(){
 // GEOLOCATION
 // ════════════════════════════════════════════
 function startGeolocation(){
+  // 홈화면 GPS watchPosition이 있으면 먼저 정리 (중복 방지)
+  if(S._homeWatchId != null){
+    navigator.geolocation.clearWatch(S._homeWatchId);
+    S._homeWatchId = null;
+  }
   if(!navigator.geolocation){
     showToast('위치 서비스를 지원하지 않는 브라우저예요.');
     startDemoMode(); return;
@@ -1140,7 +1172,7 @@ function startDemoMode(){
 function updateUserMarker(){
   if(!S.map||!S.userPos)return;
   if(!S.userMarker){
-    const icon=L.divIcon({html:'<div class="my-marker">🧍</div>',className:'',iconSize:[16,16],iconAnchor:[8,8]});
+    const icon=L.divIcon({html:'<div class="my-marker-student">' + '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 40\' width=\'32\' height=\'40\'>  <!-- 배낭 -->  <rect x=\'10\' y=\'17\' width=\'12\' height=\'13\' rx=\'3\' fill=\'#5B8DEF\' stroke=\'#3A6FD8\' stroke-width=\'1\'/>  <rect x=\'13\' y=\'15\' width=\'6\' height=\'4\' rx=\'2\' fill=\'#3A6FD8\'/>  <rect x=\'14\' y=\'21\' width=\'4\' height=\'3\' rx=\'1\' fill=\'#fff\' opacity=\'0.5\'/>  <!-- 몸통 -->  <rect x=\'11\' y=\'17\' width=\'10\' height=\'11\' rx=\'2\' fill=\'#F4A261\'/>  <!-- 머리 -->  <circle cx=\'16\' cy=\'11\' r=\'6\' fill=\'#FDDBB4\'/>  <!-- 머리카락 -->  <ellipse cx=\'16\' cy=\'6.5\' rx=\'5.5\' ry=\'3\' fill=\'#5C3D2E\'/>  <ellipse cx=\'11\' cy=\'10\' rx=\'1.5\' ry=\'3\' fill=\'#5C3D2E\'/>  <ellipse cx=\'21\' cy=\'10\' rx=\'1.5\' ry=\'3\' fill=\'#5C3D2E\'/>  <!-- 눈 -->  <circle cx=\'14\' cy=\'11\' r=\'0.9\' fill=\'#333\'/>  <circle cx=\'18\' cy=\'11\' r=\'0.9\' fill=\'#333\'/>  <!-- 입 -->  <path d=\'M14.5 13.5 Q16 15 17.5 13.5\' stroke=\'#c0704a\' stroke-width=\'0.8\' fill=\'none\' stroke-linecap=\'round\'/>  <!-- 팔 -->  <rect x=\'7\' y=\'17\' width=\'4\' height=\'2.5\' rx=\'1.2\' fill=\'#F4A261\'/>  <rect x=\'21\' y=\'17\' width=\'4\' height=\'2.5\' rx=\'1.2\' fill=\'#FDDBB4\'/>  <!-- 다리 -->  <rect x=\'12\' y=\'27\' width=\'3.5\' height=\'8\' rx=\'1.5\' fill=\'#4A4A8A\'/>  <rect x=\'16.5\' y=\'27\' width=\'3.5\' height=\'8\' rx=\'1.5\' fill=\'#4A4A8A\'/>  <!-- 신발 -->  <ellipse cx=\'13.7\' cy=\'35.5\' rx=\'3\' ry=\'1.5\' fill=\'#222\'/>  <ellipse cx=\'18.3\' cy=\'35.5\' rx=\'3\' ry=\'1.5\' fill=\'#222\'/></svg>' + '</div>',className:'',iconSize:[32,40],iconAnchor:[16,38]});
     S.userMarker=L.marker([S.userPos.lat,S.userPos.lng],{icon}).addTo(S.map);
     // 최초 위치 파악 시에만 지도 이동
     S.map.setView([S.userPos.lat,S.userPos.lng],16);
@@ -1423,8 +1455,23 @@ function updateCompassBearing(){
   const b=getBearing(S.userPos.lat,S.userPos.lng,S.targetSpot.lat,S.targetSpot.lng);
   document.getElementById('compass-arrow').style.transform=`rotate(${(b-S.heading+360)%360}deg)`;
   const dist=haversine(S.userPos.lat,S.userPos.lng,S.targetSpot.lat,S.targetSpot.lng);
-  document.getElementById('compass-label').textContent=
-    `목적지까지 약 ${dist<1000?Math.round(dist)+'m':(dist/1000).toFixed(1)+'km'}`;
+  var distText = dist<1000?Math.round(dist)+'m':(dist/1000).toFixed(1)+'km';
+  var compassLabelEl = document.getElementById('compass-label');
+  compassLabelEl.textContent = '목적지까지 약 ' + distText;
+  // 거리에 따라 색상 변화
+  var progressBar = document.getElementById('dist-progress-bar');
+  if(progressBar){
+    if(dist <= 80){
+      progressBar.style.background = 'linear-gradient(90deg,#27AE60,#2ECC71)'; // 초록 (거의 도착)
+      compassLabelEl.style.color = '#27AE60';
+    } else if(dist <= 200){
+      progressBar.style.background = 'linear-gradient(90deg,#F39C12,#F1C40F)'; // 노랑 (가까움)
+      compassLabelEl.style.color = '#E67E22';
+    } else {
+      progressBar.style.background = 'linear-gradient(90deg,var(--blue),#5B8DEF)'; // 파랑 (기본)
+      compassLabelEl.style.color = '';
+    }
+  }
 }
 
 
@@ -1596,7 +1643,15 @@ function applyNickSavedMode(){
     nickInput.style.background = '';
     if(schoolInput){ schoolInput.disabled=false; schoolInput.style.opacity='1'; schoolInput.style.background=''; }
     if(editBtn) editBtn.style.display='none';
-    if(submitBtn){ submitBtn.style.display='block'; submitBtn.disabled=true; }
+    if(submitBtn){
+      submitBtn.style.display='block';
+      // 이전에 서약 체크했으면 복원
+      var pledgeDone = localStorage.getItem('arPledgeDone') === '1';
+      var pledgeCheck = document.getElementById('pledge-check');
+      if(pledgeCheck) pledgeCheck.checked = pledgeDone;
+      submitBtn.disabled = !pledgeDone;
+      submitBtn.style.opacity = pledgeDone ? '1' : '0.5';
+    }
   }
 }
 
@@ -1612,7 +1667,8 @@ function toggleNickEdit(){
   if(subBtn){ subBtn.style.display='block'; subBtn.disabled=true; }
   var pledgeCheck = document.getElementById('pledge-check');
   if(pledgeCheck) pledgeCheck.checked=false;
-  if(subBtn) subBtn.disabled=true; subBtn.style.opacity='0.5';
+  localStorage.removeItem('arPledgeDone');
+  if(subBtn){ subBtn.disabled=true; subBtn.style.opacity='0.5'; }
   nickInput.focus();
   // 완료 버튼으로 바꾸면 다시 저장
   editBtn.onclick = function(){
@@ -1693,12 +1749,14 @@ function renderSpotSelectScreen(){
 function selectSpotAndHunt(spotId){
   const spot = S.spots.find(s=>s.id===spotId);
   if(!spot){ showToast('스팟을 찾을 수 없어요.'); return; }
+  // 이미 방문한 스팟은 _arrivalFired 리셋 안 함 (재도착 방지)
+  const alreadyVisited = S.arrivedSpots.has(spotId) || !!localStorage.getItem('arClaimed_'+S.userFp+'_'+spotId);
   S.selectedSpotId = spotId;
   S.targetSpot = spot;
   S.shownProx = {r100:false, r50:false};
   S.proximityState = 'far';
   S._startDist = null;
-  S._arrivalFired = false;  // 새 스팟 선택 시 플래그 리셋
+  S._arrivalFired = alreadyVisited ? true : false;  // 방문 완료 스팟은 재도착 차단
   // 진행 상태 저장 (새로고침 복귀용)
   localStorage.setItem('arSelectedSpot', spotId);
   localStorage.setItem('arScreen', 'hunt');
@@ -2573,6 +2631,15 @@ function countAdminTap(){
   }
 }
 
+
+// ════ 네트워크 상태 감지 ════
+window.addEventListener('offline', function(){
+  showToast('⚠️ 인터넷 연결이 끊겼어요. Wi-Fi 또는 데이터를 확인해주세요.');
+});
+window.addEventListener('online', function(){
+  showToast('✅ 인터넷에 다시 연결됐어요.');
+});
+
 // ════════════════════════════════════════════
 // ARRIVAL SCREEN
 // ════════════════════════════════════════════
@@ -3191,7 +3258,7 @@ if(savedNick){
 
 // Firebase 준비되면 스팟 로드 + 홈화면 GPS 시작
 if(navigator.geolocation){
-  navigator.geolocation.watchPosition(function(pos){
+  S._homeWatchId = navigator.geolocation.watchPosition(function(pos){
     S.userPos = {lat: pos.coords.latitude, lng: pos.coords.longitude};
     S.accuracy = pos.coords.accuracy;
     updateGalleryDists();
