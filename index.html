@@ -1407,7 +1407,16 @@ function openSecretModal(spot){
 function reopenSecretModal(){
   var banner = document.getElementById('secret-reopen-banner');
   if(banner) banner.style.display = 'none';
-  if(S._currentSpot) openSecretModal(S._currentSpot);
+  // _currentSpot 없으면 targetSpot 또는 selectedSpotId로 fallback
+  var spot = S._currentSpot
+    || S.targetSpot
+    || S.spots.find(function(s){ return s.id === S.selectedSpotId; });
+  if(spot){
+    S._currentSpot = spot;
+    openSecretModal(spot);
+  } else {
+    showToast('스팟 정보를 찾을 수 없어요. 잠시 후 다시 시도해주세요.');
+  }
 }
 
 function closeSecretModal(){
@@ -1829,7 +1838,10 @@ function selectSpotAndHunt(spotId){
     var _rSpot = S.targetSpot || S.spots.find(function(s){return s.id===S.selectedSpotId;});
     if(_rSpot && _rSpot.secretCode && _rSpot.secretCode.trim()){
       var _localKey = 'arClaimed_'+S.userFp+'_'+_rSpot.id;
-      if(!localStorage.getItem(_localKey)){
+      // 도착한 적 있고(arrivedSpots) + 아직 미수령일 때만 배너 표시
+      var _hasArrived = S.arrivedSpots.has(_rSpot.id);
+      if(_hasArrived && !localStorage.getItem(_localKey)){
+        S._currentSpot = _rSpot;  // reopenSecretModal에서 사용
         var _banner = document.getElementById('secret-reopen-banner');
         if(_banner) _banner.style.display = 'flex';
       }
