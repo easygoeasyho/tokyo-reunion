@@ -1390,6 +1390,7 @@ function triggerArrival(){
 
   // 분기 처리 — secretCode 있으면 무조건 팝업 먼저 (수령 여부와 무관)
   if(spot.secretCode && spot.secretCode.trim()){
+    S._currentSpot = spot;  // closeSecretModal에서 배너 표시에 필요
     openSecretModal(spot);
   } else if(remaining === 0 || alreadyClaimed){
     showArrivalScreen(spot);
@@ -1903,7 +1904,20 @@ function selectSpotAndHunt(spotId){
       giftEl2.textContent = '';
     }
   }
-  showToast(spot.emoji+' '+spot.name+'으로 출발!');
+  // 도착O + secretCode 있음 + 미수령 → 배너 표시 (홈→재진입 케이스)
+  var _fp2 = S.userFp || localStorage.getItem('arUserFp') || '';
+  var _hasArrived2 = S.arrivedSpots.has(spotId);
+  var _claimed2 = !!localStorage.getItem('arClaimed_' + _fp2 + '_' + spotId);
+  if(_hasArrived2 && spot.secretCode && spot.secretCode.trim() && !_claimed2){
+    S._currentSpot = spot;
+    // 즉시 팝업을 여는 대신, 200ms 후 배너 표시 (헌트 화면 렌더 완료 후)
+    setTimeout(function(){
+      var _b = document.getElementById('secret-reopen-banner');
+      if(_b) _b.style.display = 'flex';
+    }, 300);
+  } else {
+    showToast(spot.emoji+' '+spot.name+'으로 출발!');
+  }
 }
 
 // 완료된 스팟 클릭 → 댓글/랭킹 바로 보기
@@ -3471,20 +3485,7 @@ waitFirebase(()=>{
       // 이동 중이던 스팟으로 자동 복귀
       const spot = S.spots.find(s=>s.id===savedSpotId);
       if(spot){
-        selectSpotAndHunt(savedSpotId);
-        // 새로고침 복원 시에만: 암호 미입력 배너 복원 (도착 O + 미수령 경우)
-        setTimeout(function(){
-          if(spot.secretCode && spot.secretCode.trim()){
-            var _fp = S.userFp || localStorage.getItem('arUserFp') || '';
-            var _localKey = 'arClaimed_' + _fp + '_' + spot.id;
-            var _hasArrived = S.arrivedSpots.has(spot.id);
-            if(_hasArrived && !localStorage.getItem(_localKey)){
-              S._currentSpot = spot;
-              var _banner = document.getElementById('secret-reopen-banner');
-              if(_banner) _banner.style.display = 'flex';
-            }
-          }
-        }, 200);
+        selectSpotAndHunt(savedSpotId);  // 내부에서 도착O+미수령 배너 자동 처리
         return;
       }
     }
