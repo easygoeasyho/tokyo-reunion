@@ -454,6 +454,18 @@ button:active, .sg-card:active, .spot-card:active {
   pointer-events: none;
 }
 
+.spot-pin-tooltip {
+  background: rgba(0,0,0,0.75) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-family: 'Noto Sans KR', sans-serif !important;
+  padding: 4px 8px !important;
+  white-space: nowrap !important;
+}
+.spot-pin-tooltip::before { display:none !important; }
+
 </style>
 
 <!-- Firebase SDK -->
@@ -855,6 +867,7 @@ const S = {
   userFp:null, _editingSpotId:null, adminMapMarkers:{}, filterSpotId:null, _commentTargetSpotId:null, selectedSpotId:null,
   _giftImgBase64:null,
   _homeWatchId:null,
+  spotMarker:null,
   _unsubComments:{},   // Firestore 실시간 리스너 해제용
 };
 
@@ -1140,6 +1153,7 @@ function initHuntMap(){
 
 
   try{ setNearestTarget(); } catch(e){ console.warn('setNearestTarget err:', e); }
+  try{ updateSpotMarker(); } catch(e){}
   // 지도 크기 강제 갱신 (숨겨진 상태에서 초기화 후 보정)
   setTimeout(function(){ if(S.map) S.map.invalidateSize(); }, 200);
 }
@@ -1177,6 +1191,7 @@ function startGeolocation(){
   S.userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
   S.accuracy = pos.coords.accuracy;
   updateUserMarker();
+  updateSpotMarker();
   try{ setNearestTarget(); } catch(e){ console.warn('setNearestTarget err:', e); }
   updateProximity();
   updateGalleryDists();
@@ -1255,6 +1270,30 @@ function setNearestTarget(){
 // ════════════════════════════════════════════
 // PROXIMITY
 // ════════════════════════════════════════════
+function updateSpotMarker(){
+  if(!S.map) return;
+  var spot = S.targetSpot;
+  // 타겟 스팟 없거나 도착한 스팟이면 핀 숨김
+  if(!spot || !spot.lat || !spot.lng){
+    if(S.spotMarker){ S.map.removeLayer(S.spotMarker); S.spotMarker=null; }
+    return;
+  }
+  var pinHtml = '<div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));">'
+    + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" width="32" height="42">'
+    + '<path d="M16 0C9.37 0 4 5.37 4 12c0 9 12 30 12 30S28 21 28 12C28 5.37 22.63 0 16 0z" fill="#E74C3C"/>'
+    + '<circle cx="16" cy="12" r="6" fill="#fff"/>'
+    + '<text x="16" y="16" text-anchor="middle" font-size="8" fill="#E74C3C" font-family="sans-serif">' + (spot.emoji||'📍') + '</text>'
+    + '</svg></div>';
+  var icon = L.divIcon({html: pinHtml, className:'', iconSize:[32,42], iconAnchor:[16,42]});
+  if(!S.spotMarker){
+    S.spotMarker = L.marker([spot.lat, spot.lng], {icon: icon, zIndexOffset:100}).addTo(S.map);
+    S.spotMarker.bindTooltip(spot.name, {permanent:false, direction:'top', offset:[0,-42], className:'spot-pin-tooltip'});
+  } else {
+    S.spotMarker.setLatLng([spot.lat, spot.lng]);
+    S.spotMarker.setIcon(icon);
+  }
+}
+
 function updateProximity(){
   if(!S.targetSpot||!S.userPos)return;
   const dist=haversine(S.userPos.lat,S.userPos.lng,S.targetSpot.lat,S.targetSpot.lng);
