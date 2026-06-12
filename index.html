@@ -889,7 +889,22 @@ function waitFirebase(fn){
 // ════════════════════════════════════════════
 async function fbSaveSpot(spot){
   const {setDoc,doc} = fs();
-  await setDoc(doc(db(),'spots',spot.id), spot);
+  // Firestore는 undefined 값 허용 안 함 → 재귀적으로 정제
+  function sanitize(obj){
+    if(obj === null || obj === undefined) return null;
+    if(Array.isArray(obj)) return obj.map(sanitize).filter(v => v !== null && v !== undefined);
+    if(typeof obj === 'object'){
+      const out = {};
+      for(const k of Object.keys(obj)){
+        const v = obj[k];
+        if(v === undefined) continue;  // undefined 필드 제거
+        out[k] = sanitize(v);
+      }
+      return out;
+    }
+    return obj;
+  }
+  await setDoc(doc(db(),'spots',spot.id), sanitize(spot));
 }
 async function fbDeleteSpot(id){
   const {deleteDoc,doc} = fs();
