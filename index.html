@@ -906,6 +906,34 @@ async function fbSaveSpot(spot){
   }
   await setDoc(doc(db(),'spots',spot.id), sanitize(spot));
 }
+// 스팟 순서 변경 저장
+async function fbUpdateOrder(spotId, newOrder){
+  const {updateDoc,doc} = fs();
+  await updateDoc(doc(db(),'spots',spotId), {order: newOrder});
+}
+
+// 관리자: 스팟 순서 위/아래 이동
+async function moveSpot(spotId, direction){
+  const idx = S.spots.findIndex(s=>s.id===spotId);
+  if(idx<0) return;
+  const swapIdx = direction==='up' ? idx-1 : idx+1;
+  if(swapIdx<0 || swapIdx>=S.spots.length) return;
+
+  // 배열에서 순서 교환
+  const tmp = S.spots[idx];
+  S.spots[idx] = S.spots[swapIdx];
+  S.spots[swapIdx] = tmp;
+
+  // order 값 재부여 (0,1,2,3...)
+  try{
+    await Promise.all(S.spots.map((s,i) => fbUpdateOrder(s.id, i)));
+    showToast('순서가 변경됐어요 ✅');
+    renderAdminSpotList();
+  } catch(e){
+    showToast('저장 실패: '+e.message);
+  }
+}
+
 async function fbDeleteSpot(id){
   const {deleteDoc,doc} = fs();
   await deleteDoc(doc(db(),'spots',id));
@@ -913,19 +941,24 @@ async function fbDeleteSpot(id){
 async function fbLoadSpots(){
   const {getDocs,collection} = fs();
   const snap = await getDocs(collection(db(),'spots'));
-  return snap.docs.map(d=>{
+  const spots = snap.docs.map(d=>{
     const data = d.data();
     // secretCode는 클라이언트에 내려보내지 않음 (보안)
     delete data.secretCode;
     return data;
   });
+  // order 필드 기준 정렬 (없으면 0으로 처리)
+  spots.sort((a,b)=>(a.order||0)-(b.order||0));
+  return spots;
 }
 
 // 관리자 전용: secretCode 포함해서 로드
 async function fbLoadSpotsAdmin(){
   const {getDocs,collection} = fs();
   const snap = await getDocs(collection(db(),'spots'));
-  return snap.docs.map(d=>d.data());  // secretCode 포함 전체 반환
+  const spots = snap.docs.map(d=>d.data());
+  spots.sort((a,b)=>(a.order||0)-(b.order||0));
+  return spots;
 }
 
 // 서버에서 secretCode만 조회해서 비교 (클라이언트에 코드 노출 없이 검증)
@@ -3263,16 +3296,20 @@ function renderAdminSpotList(){
   const list=document.getElementById('admin-spot-list'); const no=document.getElementById('no-spots-msg');
   if(!S.spots.length){list.innerHTML='';no.style.display='block';return;}
   no.style.display='none';
-  list.innerHTML=S.spots.map(s=>`<div class="spot-list-item">
+  list.innerHTML=S.spots.map((s,i)=>`<div class="spot-list-item">
     <div class="spot-list-icon">${s.emoji}</div>
     <div style="flex:1;">
-      <div class="spot-list-name">${esc(s.name)}</div>
+      <div class="spot-list-name"><span style="font-size:10px;color:var(--blue);font-weight:700;margin-right:4px;">스팟${i+1}</span>${esc(s.name)}</div>
       <div class="spot-list-sub">📍 ${s.lat.toFixed(4)}, ${s.lng.toFixed(4)} · 반경 ${s.radius}m</div>
       <div class="spot-list-sub">🎟️ 코드 ${(s.gift?.codes||[]).length}개 · ${s.gift?.item||'선물 없음'}${s.gift?.imgBase64?' · 🖼️':''}</div>
       ${s.hint?`<div class="spot-list-sub">💡 ${esc(s.hint).substring(0,35)}…</div>`:''}
       ${s.secretCode?`<div class="spot-list-sub">🔑 암호 설정됨</div>`:''}
     </div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-left:8px;">
+      <div style="display:flex;gap:3px;margin-bottom:2px;">
+        <button onclick="moveSpot('${s.id}','up')" ${i===0?'disabled':''} style="flex:1;padding:3px 6px;font-size:13px;border:1px solid #ddd;border-radius:6px;background:${i===0?'#f5f5f5':'#fff'};cursor:${i===0?'default':'pointer'};color:${i===0?'#ccc':'#555'};">▲</button>
+        <button onclick="moveSpot('${s.id}','down')" ${i===S.spots.length-1?'disabled':''} style="flex:1;padding:3px 6px;font-size:13px;border:1px solid #ddd;border-radius:6px;background:${i===S.spots.length-1?'#f5f5f5':'#fff'};cursor:${i===S.spots.length-1?'default':'pointer'};color:${i===S.spots.length-1?'#ccc':'#555'};">▼</button>
+      </div>
       <button class="spot-list-edit" onclick="startEditSpot('${s.id}')">✏️ 수정</button>
       <button class="spot-list-del" onclick="removeSpot('${s.id}')">✕ 삭제</button>
     </div>
