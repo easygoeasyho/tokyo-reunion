@@ -854,7 +854,7 @@ button:active, .sg-card:active, .spot-card:active {
 // ════════════════════════════════════════════
 // CONSTANTS & STATE
 // ════════════════════════════════════════════
-const ADMIN_PW = btoa('Sisamedia0901');
+const ADMIN_PW_HASH = '519a2ed0dd45c01175be462fffa115d8f2f6dad6c6c1f0213423356b3e5111c0';  // SHA-256('Sisamedia0901')
 
 const S = {
   nickname:'', school:'', currentScreen:'intro', prevScreen:'intro',
@@ -913,7 +913,28 @@ async function fbDeleteSpot(id){
 async function fbLoadSpots(){
   const {getDocs,collection} = fs();
   const snap = await getDocs(collection(db(),'spots'));
-  return snap.docs.map(d=>d.data());
+  return snap.docs.map(d=>{
+    const data = d.data();
+    // secretCode는 클라이언트에 내려보내지 않음 (보안)
+    delete data.secretCode;
+    return data;
+  });
+}
+
+// 관리자 전용: secretCode 포함해서 로드
+async function fbLoadSpotsAdmin(){
+  const {getDocs,collection} = fs();
+  const snap = await getDocs(collection(db(),'spots'));
+  return snap.docs.map(d=>d.data());  // secretCode 포함 전체 반환
+}
+
+// 서버에서 secretCode만 조회해서 비교 (클라이언트에 코드 노출 없이 검증)
+async function fbVerifySecretCode(spotId, entered){
+  const {getDoc,doc} = fs();
+  const snap = await getDoc(doc(db(),'spots',spotId));
+  if(!snap.exists()) return false;
+  const correct = (snap.data().secretCode||'').trim();
+  return entered.trim().toLowerCase() === correct.toLowerCase();
 }
 
 // ════════════════════════════════════════════
@@ -1110,8 +1131,12 @@ function askAdminPw(){
   setTimeout(()=>document.getElementById('pw-input').focus(),100);
 }
 function closePwModal(){ document.getElementById('pw-modal').classList.add('hidden'); }
-function checkPw(){
-  if(btoa(document.getElementById('pw-input').value)===ADMIN_PW){ closePwModal(); enterAdmin(); }
+async function checkPw(){
+  const entered = document.getElementById('pw-input').value;
+  // SHA-256 해시 비교 (평문 비밀번호 노출 방지)
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(entered));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash === ADMIN_PW_HASH){ closePwModal(); enterAdmin(); }
   else{
     document.getElementById('pw-err').style.display='block';
     document.getElementById('pw-input').classList.add('err');
@@ -1527,24 +1552,35 @@ function toggleSecretHint(){
   const box = document.getElementById('secret-hint-box');
   box.classList.toggle('show');
 }
-function checkSecretCode(){
+async function checkSecretCode(){
   const modal = document.getElementById('secret-modal');
   const spot = modal._spot;
   const input = document.getElementById('secret-input');
   const err = document.getElementById('secret-err');
   const entered = input.value.trim();
-  const correct = (spot.secretCode||'').trim();
-  // Case-insensitive comparison
-  if(entered.toLowerCase() === correct.toLowerCase()){
-    closeSecretModal();
-    showArrivalScreen(spot);
-  } else {
-    input.classList.add('err');
-    err.style.display = 'block';
-    setTimeout(()=>{input.classList.remove('err');}, 500);
-    input.value = '';
-    input.focus();
-    vibrate([100,50,100]);
+  if(!entered){ input.focus(); return; }
+
+  // 버튼 비활성화 (중복 클릭 방지)
+  const btn = document.getElementById('secret-submit-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '확인 중...'; }
+
+  try{
+    const ok = await fbVerifySecretCode(spot.id, entered);
+    if(ok){
+      closeSecretModal();
+      showArrivalScreen(spot);
+    } else {
+      input.classList.add('err');
+      err.style.display = 'block';
+      setTimeout(()=>{ input.classList.remove('err'); }, 500);
+      input.value = '';
+      input.focus();
+      vibrate([100,50,100]);
+    }
+  } catch(e){
+    showToast('❌ 네트워크 오류, 다시 시도해주세요.');
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = '확인'; }
   }
 }
 
@@ -3668,7 +3704,7 @@ waitFirebase(()=>{
     <div class="secret-err" id="secret-err">❌ 암호가 올바르지 않습니다. 다시 시도해주세요.</div>
     <div class="secret-btns">
       <button class="secret-btn cancel" onclick="closeSecretModal()">취소</button>
-      <button class="secret-btn primary" onclick="checkSecretCode()">확인</button>
+      <button class="secret-btn primary" id="secret-submit-btn" onclick="checkSecretCode()">확인</button>
     </div>
   </div>
 </div>
