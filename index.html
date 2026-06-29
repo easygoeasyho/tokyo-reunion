@@ -947,8 +947,24 @@ async function fbLoadSpots(){
     delete data.secretCode;
     return data;
   });
-  // order 필드 기준 정렬 (없으면 0으로 처리)
-  spots.sort((a,b)=>(a.order||0)-(b.order||0));
+  // order 필드 없는 스팟에 인덱스 기반 order 자동 부여
+  let needsInit = false;
+  spots.forEach((s,i)=>{
+    if(s.order === undefined || s.order === null){
+      s.order = i;
+      needsInit = true;
+    }
+  });
+  // order 기준 정렬
+  spots.sort((a,b)=>a.order - b.order);
+  // order 미설정 스팟이 있었으면 Firebase에 일괄 저장
+  if(needsInit){
+    const {updateDoc,doc} = fs();
+    spots.forEach((s,i)=>{
+      s.order = i;
+      updateDoc(doc(db(),'spots',s.id), {order:i}).catch(()=>{});
+    });
+  }
   return spots;
 }
 
@@ -957,7 +973,8 @@ async function fbLoadSpotsAdmin(){
   const {getDocs,collection} = fs();
   const snap = await getDocs(collection(db(),'spots'));
   const spots = snap.docs.map(d=>d.data());
-  spots.sort((a,b)=>(a.order||0)-(b.order||0));
+  spots.forEach((s,i)=>{ if(s.order===undefined||s.order===null) s.order=i; });
+  spots.sort((a,b)=>a.order - b.order);
   return spots;
 }
 
